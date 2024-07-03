@@ -34,26 +34,27 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavController
 import com.example.chattinapp.R
 
 @Composable
-fun ProfileScreen(){
-    val bottomNavItems = BottomNavItem.entries.toTypedArray()
-    val navController = rememberNavController()
+fun ProfileScreen(navController: NavController) {
+//    val bottomNavItems = BottomNavItem.entries.toTypedArray()
+//    val navController = rememberNavController()
     Scaffold(
         topBar = {
-            MyAppBar(title = "Profile", iconImageVector = Icons.Default.ArrowBack) {}
+            ProfileScreenAppBar(title = "Profile", isOtherUser = false) {
+                navController.popBackStack()
+            }
         },
         modifier = Modifier.fillMaxSize(),
-        bottomBar = { BottomNavigationBar(tabBarItems = bottomNavItems, navController = navController) }
+//        bottomBar = { BottomNavigationBar(tabBarItems = bottomNavItems, navController = navController) }
     ) { innerPadding ->
         Profile(
             name = "Android",
@@ -64,19 +65,21 @@ fun ProfileScreen(){
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyAppBar(title: String, iconImageVector: ImageVector, onIconClick: () -> Unit) {
+fun ProfileScreenAppBar(title: String, isOtherUser: Boolean, onIconClick: () -> Unit) {
     CenterAlignedTopAppBar(
         title = { Text(text = title) },
         navigationIcon =
         // todo back only when user see others profile
         {
-            Icon(
-                imageVector = iconImageVector,
-                "Back",
-                modifier = Modifier
-                    .padding(horizontal = 12.dp)
-                    .clickable(onClick = { onIconClick.invoke() })
-            )
+            if (isOtherUser) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    "Back",
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp)
+                        .clickable(onClick = { onIconClick.invoke() })
+                )
+            }
         },
         actions = {
             UserProfileMenuActions()
@@ -98,7 +101,7 @@ fun UserProfileMenuActions() {
             DropdownMenuItem(
                 text = { Text("Edit Profile") },
                 onClick = {
-                    // Handle option 1 click
+                    // will do something here
                     menuExpanded = false
                 }
             )
@@ -113,7 +116,12 @@ fun Profile(name: String, modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         ProfilePicture(picUrl = "", picSize = 200.dp)
-        ProfileDetails(userId = "tempId", userName = "Temp User")
+        ProfileDetails(
+            userId = "tempId",
+            userName = "Temp User",
+            isSelfUser = true,
+            Alignment.CenterHorizontally
+        )
     }
 }
 
@@ -143,20 +151,24 @@ fun ProfilePicture(picUrl: String, picSize: Dp) {
 fun ProfileDetails(
     userId: String,
     userName: String,
+    isSelfUser: Boolean,
+    horizontalAlignment: Alignment.Horizontal
 ) {
     Column(
         modifier = Modifier
             .padding(bottom = 8.dp, end = 8.dp)
             .fillMaxWidth(),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = horizontalAlignment
     ) {
-        Text(
-            text = "User Id: $userName",
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodyMedium
-        )
+        if (isSelfUser) {
+            Text(
+                text = "User Id: $userName",
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
         Spacer(modifier = Modifier.height(10.dp))
         Text(
             text = "Username: $userName",
@@ -171,7 +183,7 @@ fun ProfileDetails(
 fun ProfileScreenPreview() {
     Scaffold(
         topBar = {
-            MyAppBar(title = "Profile", iconImageVector = Icons.Default.ArrowBack) {}
+            ProfileScreenAppBar(title = "Profile", isOtherUser = true) {}
         },
         modifier = Modifier.fillMaxSize()
     ) { innerPadding ->

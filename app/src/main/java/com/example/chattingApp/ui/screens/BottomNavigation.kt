@@ -37,13 +37,12 @@ fun BottomNavigationBar(tabBarItems: Array<BottomNavItem>, navController: NavCon
     }
 
     NavigationBar {
-        // looping over each tab to generate the views and navigation for each item
         tabBarItems.forEachIndexed { index, tabBarItem ->
             NavigationBarItem(
                 selected = selectedTabIndex == index,
                 onClick = {
                     selectedTabIndex = index
-//                    navController.navigate(tabBarItem.route)
+                    navController.navigate(tabBarItem.route)
                 },
                 icon = {
                     NavigationItem(
