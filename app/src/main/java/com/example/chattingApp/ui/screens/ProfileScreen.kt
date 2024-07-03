@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CardElevation
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -115,7 +116,11 @@ fun Profile(name: String, modifier: Modifier = Modifier) {
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        ProfilePicture(picUrl = "", picSize = 200.dp)
+        ProfilePicture(
+            picUrl = "",
+            modifier = Modifier.size(200.dp),
+            elevation = CardDefaults.elevatedCardElevation(8.dp)
+        )
         ProfileDetails(
             userId = "tempId",
             userName = "Temp User",
@@ -126,10 +131,10 @@ fun Profile(name: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun ProfilePicture(picUrl: String, picSize: Dp) {
+fun ProfilePicture(picUrl: String, modifier: Modifier, elevation: CardElevation) {
     Card(
         shape = CircleShape,
-        elevation = CardDefaults.elevatedCardElevation(8.dp),
+        elevation = elevation,
         border = BorderStroke(
             width = 2.dp,
             color = MaterialTheme.colorScheme.primary
@@ -140,8 +145,7 @@ fun ProfilePicture(picUrl: String, picSize: Dp) {
         Image(
             painter = painterResource(id = R.drawable.dog_pic),
             contentDescription = "ProfilePicture",
-            modifier = Modifier
-                .size(picSize),
+            modifier = modifier,
             contentScale = ContentScale.Crop,
         )
     }
