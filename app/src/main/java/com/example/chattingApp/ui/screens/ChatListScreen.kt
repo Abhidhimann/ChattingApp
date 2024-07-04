@@ -31,7 +31,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.isTraceInProgress
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -43,11 +42,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.chattingApp.ui.UserProfile
 import com.example.chattingApp.ui.usersProfile
 
 @Composable
-fun ChatListScreen() {
+fun ChatListScreen(navController: NavController) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -58,7 +59,8 @@ fun ChatListScreen() {
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
-            users = usersProfile
+            users = usersProfile,
+            navController = navController
         )
     }
 }
@@ -67,6 +69,7 @@ fun ChatListScreen() {
 fun UserListSurface(
     modifier: Modifier,
     users: List<UserProfile>,
+    navController: NavController
 ) {
     Surface(
         modifier = modifier
@@ -78,6 +81,7 @@ fun UserListSurface(
         ) {
             items(users) {
                 ProfileCard(userProfile = it) {
+                    navController.navigate(route = "chatScreen")
                 }
             }
         }
@@ -143,7 +147,7 @@ fun ProfileCard(userProfile: UserProfile, onClick: () -> Unit) {
         ) {
             ProfilePicture(
                 userProfile.picId, modifier = Modifier
-                    .size(56.dp),
+                    .size(48.dp),
                 elevation = CardDefaults.elevatedCardElevation(0.dp)
             )
             ChatThreadDetails(
@@ -185,7 +189,7 @@ fun ChatThreadDetails(
             modifier = Modifier
                 .wrapContentHeight()
                 .constrainAs(lastMessage) {
-                    top.linkTo(title.bottom, margin = 6.dp)
+                    top.linkTo(title.bottom, margin = 4.dp)
                     bottom.linkTo(parent.bottom)
                 }
         )
@@ -195,12 +199,13 @@ fun ChatThreadDetails(
                 .wrapContentHeight()
                 .constrainAs(lastUpdateTime) {
                     end.linkTo(parent.end, margin = 10.dp)
+                    top.linkTo(parent.top, margin = 4.dp)
                 })
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun ChatScreenPreview() {
-    ChatListScreen()
+fun ChatListScreenPreview() {
+    ChatListScreen(rememberNavController())
 }

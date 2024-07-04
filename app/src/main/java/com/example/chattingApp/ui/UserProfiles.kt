@@ -1,7 +1,7 @@
 package com.example.chattingApp.ui
 
 
-class UserProfile(val id: Int, val name: String, val status: Boolean, val picId: String)
+data class UserProfile(val id: Int, val name: String, val status: Boolean, val picId: String)
 
 val usersProfile = listOf<UserProfile>(
     UserProfile(

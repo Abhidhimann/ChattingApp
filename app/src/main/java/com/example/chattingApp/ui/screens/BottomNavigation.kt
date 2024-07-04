@@ -31,13 +31,13 @@ enum class BottomNavItem(
 }
 
 @Composable
-fun BottomNavigationBar(tabBarItems: Array<BottomNavItem>, navController: NavController) {
+fun BottomNavigationBar(bottomNavItems: Array<BottomNavItem>, navController: NavController) {
     var selectedTabIndex by rememberSaveable {
         mutableIntStateOf(0)
     }
 
     NavigationBar {
-        tabBarItems.forEachIndexed { index, tabBarItem ->
+        bottomNavItems.forEachIndexed { index, tabBarItem ->
             NavigationBarItem(
                 selected = selectedTabIndex == index,
                 onClick = {
