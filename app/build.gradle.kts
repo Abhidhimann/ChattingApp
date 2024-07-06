@@ -3,14 +3,16 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     id("kotlin-kapt")
     alias(libs.plugins.hilt.android)
+    id("com.google.gms.google-services")
+    kotlin("plugin.serialization")
 }
 
 android {
-    namespace = "com.example.chattinapp"
+    namespace = "com.example.chattingApp"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.chattinapp"
+        applicationId = "com.example.chattingApp"
         minSdk = 30
         targetSdk = 34
         versionCode = 1
@@ -61,17 +63,36 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.firebase.messaging.ktx)
     testImplementation(libs.junit)
+    implementation("androidx.work:work-runtime-ktx:2.7.1")
 
     // hilt
-    implementation("com.google.dagger:hilt-android:2.44")
-    kapt("com.google.dagger:hilt-android-compiler:2.44")
+    implementation("com.google.dagger:hilt-android:2.48")
+    kapt("com.google.dagger:hilt-android-compiler:2.48")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:1.9.0")
 
     // navigation
     implementation("androidx.navigation:navigation-compose:2.7.7")
 
     // constraint layout
     implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
+
+    // firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.1.1"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-firestore:24.0.0")
+
+    // task to coroutines because i like coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.4.1")
+
+    // ser
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+
+    // json
+    implementation("com.squareup.retrofit2:converter-gson:2.5.0")
+
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -80,4 +101,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(kotlin("reflect"))
+}
+kapt {
+    correctErrorTypes = true
 }

@@ -6,10 +6,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.chattingApp.ui.screens.BottomNavItem
 import com.example.chattingApp.ui.screens.ChatListScreen
-import com.example.chattingApp.ui.screens.ChatScreen
-import com.example.chattingApp.ui.screens.ChatScreenPreview
+import com.example.chattingApp.ui.screens.chatscreen.ChatScreen
 import com.example.chattingApp.ui.screens.DiscoverPeopleScreen
-import com.example.chattingApp.ui.screens.ProfileScreen
+import com.example.chattingApp.ui.screens.profilescreen.ProfileScreen
 
 @Composable
 fun NavigationHost(navController: NavHostController) {

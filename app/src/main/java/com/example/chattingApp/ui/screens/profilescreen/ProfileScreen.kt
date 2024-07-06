@@ -1,4 +1,4 @@
-package com.example.chattingApp.ui.screens
+package com.example.chattingApp.ui.screens.profilescreen
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -39,10 +39,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.chattinapp.R
+import com.example.chattingApp.R
 
 @Composable
 fun ProfileScreen(navController: NavController) {

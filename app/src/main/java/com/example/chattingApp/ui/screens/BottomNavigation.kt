@@ -36,7 +36,7 @@ fun BottomNavigationBar(bottomNavItems: Array<BottomNavItem>, navController: Nav
         mutableIntStateOf(0)
     }
 
-    NavigationBar {
+    NavigationBar() {
         bottomNavItems.forEachIndexed { index, tabBarItem ->
             NavigationBarItem(
                 selected = selectedTabIndex == index,
