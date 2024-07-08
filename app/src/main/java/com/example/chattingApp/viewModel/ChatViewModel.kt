@@ -1,9 +1,7 @@
 package com.example.chattingApp.viewModel
 
 import android.util.Log
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -12,7 +10,7 @@ import com.example.chattingApp.data.remote.ChatSocketService
 import com.example.chattingApp.data.remote.FirebaseMessageService
 import com.example.chattingApp.domain.model.Message
 import com.example.chattingApp.ui.screens.chatscreen.ChatScreenEvent
-import com.example.chattingApp.ui.screens.chatscreen.ChatState
+import com.example.chattingApp.ui.screens.chatscreen.ChatScreenState
 import com.example.chattingApp.utils.classTag
 import com.example.chattingApp.utils.tempTag
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,7 +27,7 @@ class ChatViewModel @Inject constructor(
 //    private val _state = mutableStateOf(ChatState())
 //    val state: State<ChatState> = _state
 
-    var state by mutableStateOf(ChatState())
+    var state by mutableStateOf(ChatScreenState())
         private set
 
     private fun sendMessage(message: Message) {

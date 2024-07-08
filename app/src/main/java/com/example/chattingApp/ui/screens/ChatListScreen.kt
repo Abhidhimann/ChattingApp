@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
@@ -40,9 +41,9 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.chattingApp.ui.UserProfile
+import com.example.chattingApp.domain.model.UserProfile
+import com.example.chattingApp.domain.model.tempUserProfile
 import com.example.chattingApp.ui.screens.profilescreen.ProfilePicture
-import com.example.chattingApp.ui.usersProfile
 
 @Composable
 fun ChatListScreen(navController: NavController) {
@@ -56,7 +57,7 @@ fun ChatListScreen(navController: NavController) {
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
-            users = usersProfile,
+            users = listOf(tempUserProfile),
             navController = navController
         )
     }
@@ -143,9 +144,13 @@ fun ProfileCard(userProfile: UserProfile, onClick: () -> Unit) {
             horizontalArrangement = Arrangement.Start
         ) {
             ProfilePicture(
-                userProfile.picId, modifier = Modifier
-                    .size(48.dp),
-                elevation = CardDefaults.elevatedCardElevation(0.dp)
+                userProfile.profileImageUrl, modifier = Modifier
+                    .padding(4.dp)
+                    .size(56.dp)
+                    .padding(4.dp)
+                ,
+                elevation = CardDefaults.elevatedCardElevation(0.dp),
+                shapes = CircleShape
             )
             ChatThreadDetails(
                 userName = userProfile.name,

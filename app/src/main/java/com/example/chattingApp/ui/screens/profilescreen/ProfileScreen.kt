@@ -11,8 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
@@ -35,29 +34,48 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.example.chattingApp.R
+import com.example.chattingApp.domain.model.UserProfile
+import com.example.chattingApp.domain.model.tempUserProfile
 
 @Composable
 fun ProfileScreen(navController: NavController) {
-//    val bottomNavItems = BottomNavItem.entries.toTypedArray()
-//    val navController = rememberNavController()
+
+    ProfileScreenContent(userId = 1, state = ProfileScreenState()) { event ->
+        when (event) {
+            is ProfileScreenEvent.EditProfile -> {
+                navController.navigate("editProfileScreen")
+            }
+        }
+    }
+}
+
+@Composable
+fun ProfileScreenContent(
+    userId: Long,
+    state: ProfileScreenState,
+    onEvent: (ProfileScreenEvent) -> Unit
+) {
+    val userProfile = state.userProfile
     Scaffold(
         topBar = {
-            ProfileScreenAppBar(title = "Profile", isOtherUser = false) {
-                navController.popBackStack()
-            }
+            ProfileScreenAppBar(title = "Profile", onEvent = onEvent, isSelfUser = false)
         },
         modifier = Modifier.fillMaxSize(),
-//        bottomBar = { BottomNavigationBar(tabBarItems = bottomNavItems, navController = navController) }
     ) { innerPadding ->
         Profile(
-            name = "Android",
+            userProfile = userProfile,
             modifier = Modifier.padding(innerPadding)
         )
     }
@@ -65,30 +83,34 @@ fun ProfileScreen(navController: NavController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreenAppBar(title: String, isOtherUser: Boolean, onIconClick: () -> Unit) {
+fun ProfileScreenAppBar(
+    title: String,
+    isSelfUser: Boolean,
+    onEvent: (ProfileScreenEvent) -> Unit,
+) {
     CenterAlignedTopAppBar(
         title = { Text(text = title) },
         navigationIcon =
         // todo back only when user see others profile
         {
-            if (isOtherUser) {
+            if (!isSelfUser) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     "Back",
                     modifier = Modifier
                         .padding(horizontal = 12.dp)
-                        .clickable(onClick = { onIconClick.invoke() })
+                        .clickable(onClick = { })
                 )
             }
         },
         actions = {
-            UserProfileMenuActions()
+            UserProfileMenuActions(onEvent)
         }
     )
 }
 
 @Composable
-fun UserProfileMenuActions() {
+fun UserProfileMenuActions(onEvent: (ProfileScreenEvent) -> Unit) {
     var menuExpanded by remember { mutableStateOf(false) }
     Row {
         IconButton(onClick = { menuExpanded = true }) {
@@ -101,7 +123,7 @@ fun UserProfileMenuActions() {
             DropdownMenuItem(
                 text = { Text("Edit Profile") },
                 onClick = {
-                    // will do something here
+                    onEvent(ProfileScreenEvent.EditProfile(tempUserProfile))
                     menuExpanded = false
                 }
             )
@@ -110,41 +132,48 @@ fun UserProfileMenuActions() {
 }
 
 @Composable
-fun Profile(name: String, modifier: Modifier = Modifier) {
+fun Profile(userProfile: UserProfile?, modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier,
+        modifier = modifier.padding(start = 10.dp, end = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         ProfilePicture(
-            picUrl = "",
-            modifier = Modifier.size(200.dp),
-            elevation = CardDefaults.elevatedCardElevation(8.dp)
+            picUrl = userProfile?.profileImageUrl,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            elevation = CardDefaults.elevatedCardElevation(8.dp),
+            shapes = RoundedCornerShape(10.dp)
         )
         ProfileDetails(
-            userId = "tempId",
-            userName = "Temp User",
+            userProfile = userProfile,
             isSelfUser = true,
-            Alignment.CenterHorizontally
+            Alignment.Start,
+            modifier = Modifier
+                .weight(1f)
+                .padding(top = 12.dp)
         )
     }
 }
 
 @Composable
-fun ProfilePicture(picUrl: String, modifier: Modifier, elevation: CardElevation) {
+fun ProfilePicture(picUrl: String?, modifier: Modifier, elevation: CardElevation, shapes: Shape) {
     Card(
-        shape = CircleShape,
+        shape = shapes,
         elevation = elevation,
         border = BorderStroke(
             width = 2.dp,
             color = MaterialTheme.colorScheme.primary
         ),
-        modifier = Modifier.padding(12.dp)
+        modifier = modifier
     ) {
         // will use glide
         Image(
-            painter = painterResource(id = R.drawable.dog_pic),
+            painter = if (picUrl.isNullOrEmpty()) painterResource(id = R.drawable.dog_pic) else rememberAsyncImagePainter(
+                model = R.drawable.dog_pic
+            ),
             contentDescription = "ProfilePicture",
-            modifier = modifier,
+            modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
         )
     }
@@ -152,47 +181,85 @@ fun ProfilePicture(picUrl: String, modifier: Modifier, elevation: CardElevation)
 
 @Composable
 fun ProfileDetails(
-    userId: String,
-    userName: String,
+    userProfile: UserProfile?,
     isSelfUser: Boolean,
-    horizontalAlignment: Alignment.Horizontal
+    horizontalAlignment: Alignment.Horizontal,
+    modifier: Modifier
 ) {
     Column(
-        modifier = Modifier
-            .padding(bottom = 8.dp, end = 8.dp)
+        modifier = modifier
             .fillMaxWidth(),
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Top,
         horizontalAlignment = horizontalAlignment
     ) {
-        if (isSelfUser) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 6.dp, end = 6.dp, bottom = 8.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            if (!userProfile?.name.isNullOrBlank()) {
+                Text(
+                    text = (userProfile?.name ?: ""),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.weight(0.8f)
+                )
+                Text(
+                    text = userProfile?.gender?.value ?: "",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier
+                        .weight(.2f)
+                        .padding(start = 6.dp, end = 6.dp)
+                )
+            }
+        }
+        Card(
+            colors = CardDefaults.cardColors(contentColor = Color.Black),
+            shape = RoundedCornerShape(10.dp),
+            modifier = Modifier.fillMaxWidth(),
+            elevation = CardDefaults.elevatedCardElevation(4.dp)
+        ) {
             Text(
-                text = "User Id: $userName",
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.bodyMedium
+                text = "About me",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(6.dp)
+            )
+            Text(
+                text = userProfile?.aboutMe ?: "",
+                modifier = Modifier.padding(start = 8.dp, end = 6.dp, bottom = 4.dp)
             )
         }
-        Spacer(modifier = Modifier.height(10.dp))
-        Text(
-            text = "Username: $userName",
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Card(
+            colors = CardDefaults.cardColors(contentColor = Color.Black),
+            shape = RoundedCornerShape(10.dp),
+            modifier = Modifier.fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(4.dp)
+        ) {
+            Text(
+                text = "Interests",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(6.dp)
+            )
+            Text(
+                text = userProfile?.interests ?: "",
+                modifier = Modifier.padding(start = 8.dp, end = 6.dp, bottom = 4.dp)
+            )
+        }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun ProfileScreenPreview() {
-    Scaffold(
-        topBar = {
-            ProfileScreenAppBar(title = "Profile", isOtherUser = true) {}
-        },
-        modifier = Modifier.fillMaxSize()
-    ) { innerPadding ->
-        Profile(
-            name = "Android",
-            modifier = Modifier.padding(innerPadding)
-        )
+
+    ProfileScreenContent(userId = 1, state = ProfileScreenState(userProfile = tempUserProfile)) {
+
     }
 }

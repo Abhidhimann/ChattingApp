@@ -14,13 +14,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Icon
@@ -31,7 +29,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -39,9 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
@@ -57,7 +52,6 @@ import com.example.chattingApp.domain.model.messageList
 import com.example.chattingApp.ui.screens.ChatScreenAppBar
 import com.example.chattingApp.utils.tempTag
 import com.example.chattingApp.viewModel.ChatViewModel
-import kotlinx.coroutines.launch
 
 
 @Composable
@@ -69,7 +63,7 @@ fun ChatScreen() {
 }
 
 @Composable
-fun ChatScreenContent(state: ChatState, onEvent: (ChatScreenEvent) -> Unit) {
+fun ChatScreenContent(state: ChatScreenState, onEvent: (ChatScreenEvent) -> Unit) {
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(key1 = lifecycleOwner) {
@@ -106,7 +100,7 @@ fun ChatScreenContent(state: ChatState, onEvent: (ChatScreenEvent) -> Unit) {
 fun ChatSurface(
     modifier: Modifier,
     userId: Long,
-    state: ChatState,
+    state: ChatScreenState,
     onEvent: (ChatScreenEvent) -> Unit = {}
 ) {
     val messages = state.messages
@@ -250,6 +244,6 @@ fun MessageInputBox(
 @Preview(showBackground = true)
 @Composable
 fun ChatScreenPreview() {
-    ChatScreenContent(state = ChatState(messageList)) {
+    ChatScreenContent(state = ChatScreenState(messageList)) {
     }
 }
