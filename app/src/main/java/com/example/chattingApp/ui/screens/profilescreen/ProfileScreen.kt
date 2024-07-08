@@ -6,12 +6,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
@@ -43,6 +47,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.chattingApp.R
@@ -50,9 +56,9 @@ import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.domain.model.tempUserProfile
 
 @Composable
-fun ProfileScreen(navController: NavController) {
+fun ProfileScreenRoot(navController: NavController) {
 
-    ProfileScreenContent(userId = 1, state = ProfileScreenState()) { event ->
+    ProfileScreen(userId = 1, state = ProfileScreenState()) { event ->
         when (event) {
             is ProfileScreenEvent.EditProfile -> {
                 navController.navigate("editProfileScreen")
@@ -62,7 +68,7 @@ fun ProfileScreen(navController: NavController) {
 }
 
 @Composable
-fun ProfileScreenContent(
+fun ProfileScreen(
     userId: Long,
     state: ProfileScreenState,
     onEvent: (ProfileScreenEvent) -> Unit
@@ -70,42 +76,43 @@ fun ProfileScreenContent(
     val userProfile = state.userProfile
     Scaffold(
         topBar = {
-            ProfileScreenAppBar(title = "Profile", onEvent = onEvent, isSelfUser = false)
+            SimpleScreenAppBar(
+                title = "Profile",
+                menuActions = { UserProfileMenuActions(onEvent) },
+                navigationIcon = {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        "Back",
+                        modifier = Modifier
+                            .padding(horizontal = 12.dp)
+                            .clickable(onClick = {})
+                    )
+                }
+            )
         },
         modifier = Modifier.fillMaxSize(),
     ) { innerPadding ->
-        Profile(
+        ProfileScreenContent(
             userProfile = userProfile,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier
+                .padding(innerPadding)
+                .imePadding()
+                .fillMaxSize()
         )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreenAppBar(
+fun SimpleScreenAppBar(
     title: String,
-    isSelfUser: Boolean,
-    onEvent: (ProfileScreenEvent) -> Unit,
+    menuActions: @Composable RowScope.() -> Unit = {},
+    navigationIcon: @Composable () -> Unit = {},
 ) {
     CenterAlignedTopAppBar(
         title = { Text(text = title) },
-        navigationIcon =
-        // todo back only when user see others profile
-        {
-            if (!isSelfUser) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    "Back",
-                    modifier = Modifier
-                        .padding(horizontal = 12.dp)
-                        .clickable(onClick = { })
-                )
-            }
-        },
-        actions = {
-            UserProfileMenuActions(onEvent)
-        }
+        navigationIcon = navigationIcon,
+        actions = menuActions
     )
 }
 
@@ -132,29 +139,51 @@ fun UserProfileMenuActions(onEvent: (ProfileScreenEvent) -> Unit) {
 }
 
 @Composable
-fun Profile(userProfile: UserProfile?, modifier: Modifier = Modifier) {
+fun ProfileScreenContent(userProfile: UserProfile?, modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier.padding(start = 10.dp, end = 10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = modifier
+            .padding(start = 10.dp, end = 10.dp)
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        ProfilePicture(
-            picUrl = userProfile?.profileImageUrl,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            elevation = CardDefaults.elevatedCardElevation(8.dp),
-            shapes = RoundedCornerShape(10.dp)
-        )
-        ProfileDetails(
-            userProfile = userProfile,
-            isSelfUser = true,
-            Alignment.Start,
-            modifier = Modifier
-                .weight(1f)
-                .padding(top = 12.dp)
-        )
+        ConstraintLayout(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            val (profilePicture, profileDetails) = createRefs()
+
+            ProfilePicture(
+                picUrl = userProfile?.profileImageUrl,
+                modifier = Modifier
+                    .constrainAs(profilePicture) {
+                        top.linkTo(parent.top)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        bottom.linkTo(profileDetails.top)
+                        height = Dimension.percent(0.7f)
+                    }
+                    .fillMaxWidth(),
+                elevation = CardDefaults.elevatedCardElevation(8.dp),
+                shapes = RoundedCornerShape(10.dp)
+            )
+            ProfileDetails(
+                userProfile = userProfile,
+                isSelfUser = true,
+                horizontalAlignment = Alignment.Start,
+                modifier = Modifier
+                    .constrainAs(profileDetails) {
+                        top.linkTo(profilePicture.bottom)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        bottom.linkTo(parent.bottom)
+                    }
+                    .fillMaxWidth()
+                    .padding(top = 12.dp)
+            )
+        }
     }
 }
+
 
 @Composable
 fun ProfilePicture(picUrl: String?, modifier: Modifier, elevation: CardElevation, shapes: Shape) {
@@ -223,7 +252,7 @@ fun ProfileDetails(
             colors = CardDefaults.cardColors(contentColor = Color.Black),
             shape = RoundedCornerShape(10.dp),
             modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.elevatedCardElevation(4.dp)
+            elevation = CardDefaults.elevatedCardElevation(2.dp)
         ) {
             Text(
                 text = "About me",
@@ -235,12 +264,12 @@ fun ProfileDetails(
                 modifier = Modifier.padding(start = 8.dp, end = 6.dp, bottom = 4.dp)
             )
         }
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Card(
             colors = CardDefaults.cardColors(contentColor = Color.Black),
             shape = RoundedCornerShape(10.dp),
             modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(4.dp)
+            elevation = CardDefaults.cardElevation(2.dp)
         ) {
             Text(
                 text = "Interests",
@@ -259,7 +288,7 @@ fun ProfileDetails(
 @Composable
 fun ProfileScreenPreview() {
 
-    ProfileScreenContent(userId = 1, state = ProfileScreenState(userProfile = tempUserProfile)) {
+    ProfileScreen(userId = 1, state = ProfileScreenState(userProfile = tempUserProfile)) {
 
     }
 }

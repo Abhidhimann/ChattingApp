@@ -12,8 +12,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.example.chattingApp.ui.theme.ChattingAppTheme
-import com.example.chattingApp.ui.screens.BottomNavItem
-import com.example.chattingApp.ui.screens.BottomNavigationBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

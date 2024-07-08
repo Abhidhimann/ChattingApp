@@ -1,4 +1,4 @@
-package com.example.chattingApp.ui.screens
+package com.example.chattingApp.ui.screens.discoverScreen
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold

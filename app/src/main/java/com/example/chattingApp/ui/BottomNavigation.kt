@@ -1,4 +1,4 @@
-package com.example.chattingApp.ui.screens
+package com.example.chattingApp.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
