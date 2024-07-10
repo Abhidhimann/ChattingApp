@@ -19,6 +19,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
 
+/*
+ todo will try to replace it by sealed class
+ sealed class Screen(val route: String) {
+    object ProfileScreen : Screen("profile/{userId}", ... , ) {
+        fun createRoute(chatId: String): String = "chat_detail/$chatId"
+    }
+}
+ */
 enum class BottomNavItem(
     val route: String,
     val selectedIcon: ImageVector,
@@ -26,8 +34,15 @@ enum class BottomNavItem(
     val title: String
 ) {
     CHAT("chat", Icons.Default.Email, Icons.Default.Email, "Chat"),
-    SEARCH("search", Icons.Default.Search, Icons.Default.Search, "Search"),
-    PROFILE("profile", Icons.Default.Person, Icons.Default.Person, "Profile")
+    CONNECT("connect", Icons.Default.Search, Icons.Default.Search, "Connect"),
+    REQUEST("requests", Icons.Default.Person, Icons.Default.Person, "Requests"),
+    PROFILE("profile/{userId}", Icons.Default.Person, Icons.Default.Person, "Profile");
+
+    companion object {
+        fun goToProfileRoute(userId: String? = null): String {
+            return if (userId == null) PROFILE.route else "profile/$userId"
+        }
+    }
 }
 
 @Composable

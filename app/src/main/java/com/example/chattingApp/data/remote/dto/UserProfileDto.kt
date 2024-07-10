@@ -7,31 +7,31 @@ import com.google.firebase.firestore.PropertyName
 data class UserProfileDto(
     @get:PropertyName("name")
     @set:PropertyName("name")
-    var name: String,
-    @get:PropertyName("email")
-    @set:PropertyName("email")
-    var email: String,
-    @get:PropertyName("password")
-    @set:PropertyName("password")
-    var password: String,
+    var name: String = "",
     @get:PropertyName("user_id")
     @set:PropertyName("user_id")
-    var userId: String,
+    var userId: String = "",
     @get:PropertyName("profile_img_url")
     @set:PropertyName("profile_img_url")
-    var profileImageUrl: String,
+    var profileImageUrl: String = "",
     @get:PropertyName("gender")
     @set:PropertyName("gender")
-    var gender: String,
+    var gender: String = "",
     @get:PropertyName("about_me")
     @set:PropertyName("about_me")
-    var aboutMe: String,
+    var aboutMe: String = "",
     @get:PropertyName("interests")
     @set:PropertyName("interests")
-    var interests: String,
-    @get:PropertyName("age")
-    @set:PropertyName("age")
-    var age: Int
+    var interests: String = "",
+    @get:PropertyName("online")
+    @set:PropertyName("online")
+    var online: Boolean = false,
+    @get:PropertyName("requests")
+    @set:PropertyName("requests")
+    var requests: List<String> = emptyList(),
+    @get:PropertyName("friends")
+    @set:PropertyName("friends")
+    var friends: List<String> = emptyList()
 ) {
     fun toUserProfile(): UserProfile {
         val gender = when (gender) {
@@ -44,14 +44,14 @@ data class UserProfileDto(
         }
         return UserProfile(
             name = name,
-            email = email,
-            password = password,
             profileImageUrl = profileImageUrl,
             userId = userId,
             gender = gender,
-            age = age,
             aboutMe = aboutMe,
-            interests = interests
+            interests = interests,
+            online = online,
+            requests = requests,
+            friends = friends
         )
     }
 }

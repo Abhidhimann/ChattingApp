@@ -1,8 +1,12 @@
 package com.example.chattingApp.di
 
+import android.app.Application
+import android.content.Context
+import android.content.SharedPreferences
 import com.example.chattingApp.data.remote.ChatSocketService
 import com.example.chattingApp.data.remote.ChatSocketServiceImp
-import com.example.chattingApp.data.remote.FirebaseMessageService
+import com.example.chattingApp.data.remote.UserService
+import com.example.chattingApp.data.remote.UserServiceImp
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
@@ -30,8 +34,20 @@ class AppModules {
 
     @Provides
     @Singleton
-    fun providesFirebaseMessageService(): FirebaseMessageService {
-        return FirebaseMessageService()
+    fun providesUserService(firebaseDatabase: FirebaseFirestore): UserService {
+        return UserServiceImp(firebaseDatabase)
     }
+
+    @Provides
+    @Singleton
+    fun provideSharedPreferences(application: Application): SharedPreferences {
+        return application.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+    }
+
+//    @Provides
+//    @Singleton
+//    fun providesFirebaseMessageService(): FirebaseMessageService {
+//        return FirebaseMessageService()
+//    }
 
 }

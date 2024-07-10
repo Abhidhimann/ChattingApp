@@ -1,6 +1,7 @@
 package com.example.chattingApp.ui.screens.editprofilescreen
 
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -33,7 +34,7 @@ fun EditProfileScreenRoot(navController: NavController) {
 
     EditProfileScreenContent(userId = 1, state = EditProfileScreenState()) { event ->
         when (event) {
-            is EditProfileScreenEvent.Cancel -> navController.navigate(BottomNavItem.PROFILE.route)
+            is EditProfileScreenEvent.Cancel -> navController.navigate(BottomNavItem.goToProfileRoute())
             else -> Unit
         }
         // viewModel action
@@ -81,17 +82,15 @@ fun EditProfileScreenSurface(
 ) {
     val newUser = UserProfile(
         name = "",
-        email = "",
-        password = "",
         userId = "",
         profileImageUrl = "",
         gender = UserGender.MALE,
         aboutMe = "",
-        age = 0,
-        interests = ""
+        interests = "",
+        online = false
     )
-    val maxCharId = 16
-    val maxCharName = 16 // use enum on constant somewhere
+    val maxNameLength = 16 // use enum on constant somewhere
+    val maxInterestsLength = 36
     var userProfile by remember {
         mutableStateOf(userProfile2 ?: newUser)
     }
@@ -108,14 +107,18 @@ fun EditProfileScreenSurface(
                 .size(240.dp)
                 .padding(4.dp),
             elevation = CardDefaults.elevatedCardElevation(0.dp),
-            shapes = CircleShape
+            shapes = CircleShape,
+            border = BorderStroke(
+                width = 2.dp,
+                color = MaterialTheme.colorScheme.primary
+            )
         )
 
 
         OutlinedTextField(
             value = userProfile.name,
             onValueChange = {
-                if (it.length < maxCharName) userProfile = userProfile.copy(name = it)
+                if (it.length < maxNameLength) userProfile = userProfile.copy(name = it)
             },
             singleLine = true,
             label = { Text("Name") },
@@ -129,6 +132,7 @@ fun EditProfileScreenSurface(
             value = userProfile.aboutMe,
             onValueChange = { userProfile = userProfile.copy(aboutMe = it) },
             label = { Text("About Me") },
+            maxLines = 3,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp)
@@ -136,8 +140,10 @@ fun EditProfileScreenSurface(
 
         OutlinedTextField(
             value = userProfile.interests,
-            maxLines = 3,
-            onValueChange = { userProfile = userProfile.copy(interests = it) },
+            maxLines = 1,
+            onValueChange = {
+                if (it.length < maxInterestsLength) userProfile = userProfile.copy(interests = it)
+            },
             label = { Text("Interests") },
             modifier = Modifier
                 .fillMaxWidth()

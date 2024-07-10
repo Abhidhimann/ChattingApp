@@ -21,7 +21,6 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val chatSocketService: ChatSocketService,
-    private val firebaseMessageService: FirebaseMessageService
 ) : ViewModel() {
 
 //    private val _state = mutableStateOf(ChatState())

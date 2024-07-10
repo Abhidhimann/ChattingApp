@@ -1,5 +1,6 @@
 package com.example.chattingApp.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -150,7 +151,11 @@ fun ProfileCard(userProfile: UserProfile, onClick: () -> Unit) {
                     .padding(4.dp)
                 ,
                 elevation = CardDefaults.elevatedCardElevation(0.dp),
-                shapes = CircleShape
+                shapes = CircleShape,
+                border = BorderStroke(
+                    width = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
             )
             ChatThreadDetails(
                 userName = userProfile.name,

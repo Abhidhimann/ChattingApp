@@ -1,16 +1,235 @@
 package com.example.chattingApp.ui.screens.discoverScreen
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.navigation.NavController
+import com.example.chattingApp.domain.model.UserProfile
+import com.example.chattingApp.domain.model.UserRelation
+import com.example.chattingApp.domain.model.tempUserProfile
+import com.example.chattingApp.ui.BottomNavItem
+import com.example.chattingApp.ui.screens.chatscreen.ChatScreenEvent
+import com.example.chattingApp.ui.screens.profilescreen.ProfilePicture
+
+import com.example.chattingApp.ui.screens.profilescreen.SimpleScreenAppBar
+import com.example.chattingApp.viewModel.DiscoverViewModel
 
 @Composable
-fun DiscoverPeopleScreen() {
+fun DiscoverPeopleScreenRoot(navController: NavController) {
+    val viewModel: DiscoverViewModel = hiltViewModel<DiscoverViewModel>()
+    DiscoverPeopleScreen(state = viewModel.state) { event ->
+        when (event) {
+            is DiscoverScreenEvent.MakeProfile -> navController.navigate("editProfileScreen")
+            is DiscoverScreenEvent.OtherUserProfileClicked -> navController.navigate(
+                BottomNavItem.goToProfileRoute(
+                    event.userId
+                )
+            )
+
+            else -> {
+                viewModel.onEvent(event)
+            }
+        }
+    }
+}
+
+@Composable
+fun DiscoverPeopleScreen(
+    state: DiscoverScreenState,
+    onEvent: (DiscoverScreenEvent) -> Unit
+) {
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(key1 = lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> {
+                    onEvent(DiscoverScreenEvent.ObserveUsers)
+                }
+
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     Scaffold(
+        topBar = {
+            Surface(shadowElevation = 4.dp) {
+                SimpleScreenAppBar(
+                    title = "Discover New People",
+                )
+            }
+        },
         modifier = Modifier.fillMaxSize(),
     ) { innerPadding ->
-        Text(text = "Discover Screen")
+        DiscoverPeopleScreenContent(
+            state,
+            onEvent,
+            modifier = Modifier
+                .padding(innerPadding)
+                .imePadding()
+                .fillMaxSize()
+        )
+    }
+}
+
+@Composable
+fun DiscoverPeopleScreenContent(
+    state: DiscoverScreenState,
+    onEvent: (DiscoverScreenEvent) -> Unit,
+    modifier: Modifier
+) {
+
+    val showChatTypeDialog = remember { mutableStateOf(true) }
+
+    if (!state.isUserProfileExists && showChatTypeDialog.value) {
+        ChatTypeAlertDialog(
+            onChatAnonymously = {
+                onEvent(DiscoverScreenEvent.ChatAnonymously)
+                onEvent(DiscoverScreenEvent.UpdateUserReadyToChatStatus(true))
+                showChatTypeDialog.value = false
+            },
+            onMakeProfile = {
+                onEvent(DiscoverScreenEvent.MakeProfile)
+                showChatTypeDialog.value = false
+            },
+            dialogText = "Would you like to chat anonymously or create a profile?",
+        )
+    }
+    LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = modifier) {
+        itemsIndexed(state.users) { index, userProfile ->
+            UserDetailsCard(userProfile = userProfile, onEvent)
+        }
+    }
+}
+
+@Composable
+fun ChatTypeAlertDialog(
+    onChatAnonymously: () -> Unit,
+    onMakeProfile: () -> Unit,
+    dialogText: String,
+) {
+    AlertDialog(
+        text = {
+            Text(text = dialogText, style = MaterialTheme.typography.titleMedium)
+        },
+        onDismissRequest = { },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onMakeProfile()
+                }
+            ) {
+                Text("Make Profile")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    onChatAnonymously()
+                }
+            ) {
+                Text("Chat Anonymously")
+            }
+        }
+    )
+}
+
+
+@Composable
+fun UserDetailsCard(userProfile: UserProfile, onEvent: (DiscoverScreenEvent) -> Unit) {
+    Surface(shadowElevation = 4.dp, modifier = Modifier.padding(4.dp)) {
+        Column(
+            modifier = Modifier
+                .clickable {
+                    onEvent(DiscoverScreenEvent.OtherUserProfileClicked(userProfile.userId))
+                },
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(6.dp))
+            ProfilePicture(
+                picUrl = userProfile.profileImageUrl,
+                modifier = Modifier.size(100.dp),
+                elevation = CardDefaults.elevatedCardElevation(8.dp),
+                shapes = CircleShape,
+                border = BorderStroke(
+                    width = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = if (userProfile.name.isNullOrEmpty()) "Anonymous" else userProfile.name,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 0.dp)
+            )
+            Button(onClick = {
+                onEvent(DiscoverScreenEvent.ConnectToUser(userProfile.userId))
+            }) {
+                Text(text = if (userProfile.relation == UserRelation.ALREADY_REQUESTED) "Requested" else "Connect")
+            }
+        }
+    }
+//    }
+}
+
+@Preview
+@Composable
+fun DiscoverScreenPreview() {
+    DiscoverPeopleScreen(state = DiscoverScreenState(users = List(10) { tempUserProfile })) {
     }
 }

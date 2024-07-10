@@ -13,11 +13,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -32,6 +35,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -49,19 +54,28 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.chattingApp.R
 import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.domain.model.tempUserProfile
+import com.example.chattingApp.ui.screens.discoverScreen.DiscoverScreenEvent
+import com.example.chattingApp.viewModel.DiscoverViewModel
+import com.example.chattingApp.viewModel.ProfileScreenViewModel
 
 @Composable
-fun ProfileScreenRoot(navController: NavController) {
-
-    ProfileScreen(userId = 1, state = ProfileScreenState()) { event ->
+fun ProfileScreenRoot(userId: String?, navController: NavController) {
+    val viewModel: ProfileScreenViewModel = hiltViewModel<ProfileScreenViewModel>()
+    ProfileScreen(userId = userId, state = viewModel.state) { event ->
         when (event) {
             is ProfileScreenEvent.EditProfile -> {
                 navController.navigate("editProfileScreen")
+            }
+            else -> {
+                viewModel.onEvent(event)
             }
         }
     }
@@ -69,10 +83,27 @@ fun ProfileScreenRoot(navController: NavController) {
 
 @Composable
 fun ProfileScreen(
-    userId: Long,
+    userId: String?,
     state: ProfileScreenState,
     onEvent: (ProfileScreenEvent) -> Unit
 ) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(key1 = lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> {
+                    onEvent(ProfileScreenEvent.FetchUserProfile(userId))
+                }
+
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     val userProfile = state.userProfile
     Scaffold(
         topBar = {
@@ -112,7 +143,7 @@ fun SimpleScreenAppBar(
     CenterAlignedTopAppBar(
         title = { Text(text = title) },
         navigationIcon = navigationIcon,
-        actions = menuActions
+        actions = menuActions,
     )
 }
 
@@ -164,11 +195,14 @@ fun ProfileScreenContent(userProfile: UserProfile?, modifier: Modifier = Modifie
                     }
                     .fillMaxWidth(),
                 elevation = CardDefaults.elevatedCardElevation(8.dp),
-                shapes = RoundedCornerShape(10.dp)
+                shapes = RoundedCornerShape(10.dp),
+                border = BorderStroke(
+                    width = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
             )
             ProfileDetails(
                 userProfile = userProfile,
-                isSelfUser = true,
                 horizontalAlignment = Alignment.Start,
                 modifier = Modifier
                     .constrainAs(profileDetails) {
@@ -186,14 +220,17 @@ fun ProfileScreenContent(userProfile: UserProfile?, modifier: Modifier = Modifie
 
 
 @Composable
-fun ProfilePicture(picUrl: String?, modifier: Modifier, elevation: CardElevation, shapes: Shape) {
+fun ProfilePicture(
+    picUrl: String?,
+    modifier: Modifier,
+    elevation: CardElevation,
+    shapes: Shape,
+    border: BorderStroke
+) {
     Card(
         shape = shapes,
         elevation = elevation,
-        border = BorderStroke(
-            width = 2.dp,
-            color = MaterialTheme.colorScheme.primary
-        ),
+        border = border,
         modifier = modifier
     ) {
         // will use glide
@@ -211,7 +248,6 @@ fun ProfilePicture(picUrl: String?, modifier: Modifier, elevation: CardElevation
 @Composable
 fun ProfileDetails(
     userProfile: UserProfile?,
-    isSelfUser: Boolean,
     horizontalAlignment: Alignment.Horizontal,
     modifier: Modifier
 ) {
@@ -235,16 +271,24 @@ fun ProfileDetails(
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
                     textAlign = TextAlign.Start,
-                    modifier = Modifier.weight(0.8f)
+                    modifier = Modifier.weight(0.6f)
                 )
+                Spacer(modifier = Modifier.width(32.dp))
+                Icon(
+                    imageVector = Icons.Default.Face,
+                    contentDescription = "gender",
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .padding(top = 4.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = userProfile?.gender?.value ?: "",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.End,
                     modifier = Modifier
-                        .weight(.2f)
-                        .padding(start = 6.dp, end = 6.dp)
+                        .wrapContentWidth()
                 )
             }
         }
@@ -288,7 +332,7 @@ fun ProfileDetails(
 @Composable
 fun ProfileScreenPreview() {
 
-    ProfileScreen(userId = 1, state = ProfileScreenState(userProfile = tempUserProfile)) {
+    ProfileScreen(userId = "", state = ProfileScreenState(userProfile = tempUserProfile)) {
 
     }
 }

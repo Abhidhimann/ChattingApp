@@ -96,6 +96,9 @@ dependencies {
     // coil
     implementation("io.coil-kt:coil-compose:2.6.0")
 
+    // shared preferences
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+
 //    // shimmer
 //    implementation("com.valentinilk.shimmer:compose-shimmer:1.3.0")
 
