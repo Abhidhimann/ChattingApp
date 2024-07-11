@@ -26,12 +26,6 @@ data class UserProfileDto(
     @get:PropertyName("online")
     @set:PropertyName("online")
     var online: Boolean = false,
-    @get:PropertyName("requests")
-    @set:PropertyName("requests")
-    var requests: List<String> = emptyList(),
-    @get:PropertyName("friends")
-    @set:PropertyName("friends")
-    var friends: List<String> = emptyList()
 ) {
     fun toUserProfile(): UserProfile {
         val gender = when (gender) {
@@ -50,8 +44,6 @@ data class UserProfileDto(
             aboutMe = aboutMe,
             interests = interests,
             online = online,
-            requests = requests,
-            friends = friends
         )
     }
 }

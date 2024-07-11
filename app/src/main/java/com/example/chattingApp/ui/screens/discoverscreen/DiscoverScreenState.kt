@@ -1,4 +1,4 @@
-package com.example.chattingApp.ui.screens.discoverScreen
+package com.example.chattingApp.ui.screens.discoverscreen
 
 import com.example.chattingApp.domain.model.UserProfile
 

@@ -62,8 +62,6 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.chattingApp.R
 import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.domain.model.tempUserProfile
-import com.example.chattingApp.ui.screens.discoverScreen.DiscoverScreenEvent
-import com.example.chattingApp.viewModel.DiscoverViewModel
 import com.example.chattingApp.viewModel.ProfileScreenViewModel
 
 @Composable

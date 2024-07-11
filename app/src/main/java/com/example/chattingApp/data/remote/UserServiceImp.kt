@@ -2,28 +2,45 @@ package com.example.chattingApp.data.remote
 
 import android.util.Log
 import com.example.chattingApp.data.remote.dto.UserProfileDto
+import com.example.chattingApp.data.remote.dto.UserSummaryDto
 import com.example.chattingApp.utils.classTag
 import com.example.chattingApp.utils.tempTag
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
-import java.util.UUID
+import kotlinx.coroutines.withContext
 
 class UserServiceImp(private val db: FirebaseFirestore) : UserService {
+
+    // todo change user then it will be o(1) instead of o(n) in
     override suspend fun createUser(): Result<Any> {
         val userDto = UserProfileDto()
-        val userId = UUID.randomUUID().toString()
-        userDto.userId = userId
         try {
             val docRef = db.collection("users_details").add(userDto).await()
+            docRef.update("user_id", docRef.id)
             Log.i(classTag(), "user created with id ${docRef.id}")
-            return Result.success(userId)
+            return Result.success(docRef.id)
         } catch (e: Exception) {
             Log.i(classTag(), "error in adding message $e")
             return Result.failure(exception = e)
+        }
+    }
+
+    override suspend fun getUserProfileDocumentReference(userId: String): DocumentReference? {
+        try {
+            return db.collection("users_details").document(userId)
+        } catch (e: Exception) {
+            Log.i(tempTag(), "Fetching user profile reference failed with $e")
+            return null
         }
     }
 
@@ -38,10 +55,6 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
         return 0
     }
 
-    override suspend fun findRandomUser(): String {
-        return ""
-    }
-
     override suspend fun updateUserOnlineStatus(userId: String, value: Boolean): Int {
         try {
             db.collection("users_details").document(userId).update("ready_to_chat", value)
@@ -53,39 +66,60 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
         }
     }
 
-    override suspend fun sendConnectionRequest(toUserId: String, fromUserId: String): Int {
-        Log.i(tempTag(), "getting here with $toUserId and $fromUserId")
+    override suspend fun sendConnectionRequest(
+        toUserId: String,
+        fromUserId: String
+    ): Int {
         try {
-            val querySnapshot = db.collection("users_details")
-                .whereEqualTo("user_id", toUserId)
-                .get()
-                .await()
-
-            if (querySnapshot.documents.isNotEmpty()) {
-                val userDocument = querySnapshot.documents[0].reference
-                userDocument.update("requests", FieldValue.arrayUnion(fromUserId)).await()
-                Log.i(tempTag(), "connection request send successfully")
-                return 1
-            } else {
-                Log.i(tempTag(), "No user found with userId: $fromUserId")
-                return -1
-            }
+            val toUserIncomingRequestRef =
+                db.collection("users_details").document(toUserId).collection("incoming_requests")
+                    .document(fromUserId)
+            val fromUserOutgoingRequestRef =
+                db.collection("users_details").document(fromUserId).collection("outgoing_requests")
+                    .document(toUserId)
+            // foreign key user_id in tables from user_details
+            db.runTransaction { transaction ->
+                transaction.set(
+                    toUserIncomingRequestRef,
+                    mapOf("userId" to fromUserId, "createdAt" to FieldValue.serverTimestamp())
+                )
+                transaction.set(
+                    fromUserOutgoingRequestRef,
+                    mapOf("userId" to toUserId, "createdAt" to FieldValue.serverTimestamp())
+                )
+                Log.i(tempTag(), "Transaction successfully committed")
+            }.await()
+            return 1
         } catch (e: Exception) {
-            Log.i(classTag(), "error in sending connect request $e")
+            Log.e(tempTag(), "send connection transaction failed", e)
             return -1
         }
     }
 
-    override suspend fun removeConnectRequest(toUserId: String, fromUserId: String): Int {
-        try {
-            db.collection("users_details").document(fromUserId)
-                .update("friends", FieldValue.arrayRemove(toUserId))
-                .await()
-            return 1
-        } catch (e: Exception) {
-            Log.i(classTag(), "error in sending connect request $e")
-            return -1
-        }
+
+    override suspend fun removeConnectRequest(
+        toUserId: String,
+        fromUserId: String
+    ): Int {
+        val toUserIncomingRequestRef =
+            db.collection("users_details").document(toUserId).collection("incoming_requests")
+                .document(fromUserId)
+        val fromUserOutgoingRequestRef =
+            db.collection("users_details").document(fromUserId).collection("outgoing_requests")
+                .document(toUserId)
+        val result = db.runTransaction { transaction ->
+            transaction.delete(toUserIncomingRequestRef)
+            transaction.delete(fromUserOutgoingRequestRef)
+            Log.i(tempTag(), "Transaction successfully committed")
+        }.await()
+        return result
+    }
+
+    override suspend fun acceptConnectRequest(
+        toUserId: String,
+        fromUserId: String
+    ): Int {
+        return 1
     }
 
     override suspend fun observeNonConnectedUsers(
@@ -99,7 +133,7 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
 
             val listenerRegistration = querySnapshot.addSnapshotListener { snapshots, e ->
                 if (e != null) {
-                    Log.d(classTag(), "error in observing message -> $e")
+                    Log.d(classTag(), "error in observing users -> $e")
                     return@addSnapshotListener
                 }
 
@@ -112,27 +146,129 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
                         }
                     }
                 } else {
-                    Log.d(classTag(), "No messages found")
+                    Log.d(classTag(), "No users found")
                 }
             }
             awaitClose { listenerRegistration.remove() }
         }
 
     // todo see if need to listen this change or not
-    override suspend fun getUserProfileDetails(fromUserId: String): UserProfileDto? {
+    override suspend fun getUserProfileDetails(userId: String): UserProfileDto? {
         return try {
-            val friendsSnapshot =
-                db.collection("users_details").whereEqualTo("user_id", fromUserId).get().await()
-
-            if (friendsSnapshot.documents.isNotEmpty()) {
-                val userDocument = friendsSnapshot.documents[0]
-                userDocument.toObject(UserProfileDto::class.java)
-            } else {
-                null
-            }
+            Log.i(tempTag(), "request userid is $userId")
+            return db.collection("users_details").document(userId).get().await()
+                .toObject(UserProfileDto::class.java)
         } catch (e: Exception) {
             Log.i(classTag(), "error in getting userProfile $e")
             null
         }
     }
+
+    override suspend fun getUserFriends(userId: String): List<UserProfileDto> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val friendSnapshot =
+                    db.collection("users_details").document(userId).collection("friends").get()
+                        .await()
+
+                if (friendSnapshot != null && !friendSnapshot.isEmpty) {
+                    friendSnapshot.documents.map { document ->
+                        async {
+                            val friendUserId = document.id
+                            getUserProfileDetails(friendUserId)
+                        }
+                    }.awaitAll().filterNotNull()
+                } else {
+                    emptyList()
+                }
+            } catch (e: Exception) {
+                Log.i(tempTag(), "error in fetching user friends -> $e")
+                emptyList()
+            }
+        }
+    }
+
+    /*
+     * can remove this "getUserProfileDetails(document.id)" by duplication
+     * instead of storing user_id store user summary but then every time user changes
+     * name or profile pic have to send push notification
+     */
+    override suspend fun getUserIncomingConnectRequests(userId: String): List<UserProfileDto> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val incomingRequestSnapshot =
+                    db.collection("users_details").document(userId).collection("incoming_requests")
+                        .orderBy("createdAt", Query.Direction.DESCENDING)
+                        .get()
+                        .await()
+
+                if (incomingRequestSnapshot != null && !incomingRequestSnapshot.isEmpty) {
+                    incomingRequestSnapshot.documents.map { document ->
+                        async {
+                            getUserProfileDetails(document.id)
+                        }
+                    }.awaitAll().filterNotNull()
+                } else {
+                    emptyList()
+                }
+            } catch (e: Exception) {
+                Log.i(tempTag(), "error in fetching user friends -> $e")
+                emptyList()
+            }
+        }
+    }
+
+    override suspend fun getUserOutgoingConnectRequests(userId: String): List<UserProfileDto> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val outgoingRequestSnapshot =
+                    db.collection("users_details").document(userId).collection("outgoing_requests")
+                        .get()
+                        .await()
+
+                if (outgoingRequestSnapshot != null && !outgoingRequestSnapshot.isEmpty) {
+                    outgoingRequestSnapshot.documents.map { document ->
+                        async {
+                            getUserProfileDetails(document.id)
+                        }
+                    }.awaitAll().filterNotNull()
+                } else {
+                    emptyList()
+                }
+            } catch (e: Exception) {
+                Log.i(tempTag(), "error in fetching user friends -> $e")
+                emptyList()
+            }
+        }
+    }
+
+    override suspend fun observeConnectionRequests(userId: String): Flow<UserProfileDto> =
+        callbackFlow {
+            val querySnapshot =
+                db.collection("/users_details/$userId/incoming_requests")
+//            db.collection("users_details").document(userId).collection("incoming_requests")
+//             this is not working interesting
+
+            val listenerRegistration = querySnapshot.addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    Log.d(classTag(), "error in incoming_requests -> $e")
+                    return@addSnapshotListener
+                }
+
+                if (snapshots != null && !snapshots.isEmpty) {
+                    val jobs = snapshots.documentChanges.map { documentChange ->
+                        async(Dispatchers.IO) {
+                            val requestUserId = documentChange.document.id
+                            val userProfile = getUserProfileDetails(requestUserId)
+                            userProfile?.let { trySend(it).isSuccess }
+                        }
+                    }
+                    runBlocking { jobs.awaitAll() }
+                } else {
+                    Log.d(classTag(), "No users found ${snapshots?.isEmpty}")
+                }
+            }
+            awaitClose { listenerRegistration.remove() }
+        }
+
 }

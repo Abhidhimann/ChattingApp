@@ -11,8 +11,9 @@ data class UserProfile(
     var aboutMe: String,
     var interests: String,
     var online: Boolean,
-    var requests: List<String> = emptyList(),
-    var friends: List<String> = emptyList(),
+    var incomingRequests: List<UserSummary> = emptyList(),
+    var outgoingRequests: List<UserSummary> = emptyList(),
+    var friends: List<UserSummary> = emptyList(),
     var relation: UserRelation = UserRelation.NON_FRIEND
 ) {
     fun toUserProfileDto(): UserProfileDto {
@@ -23,10 +24,12 @@ data class UserProfile(
             gender = gender.value,
             aboutMe = aboutMe,
             interests = interests,
-            online = online,
-            requests = requests,
-            friends = friends
+            online = online
         )
+    }
+
+    fun toUserSummary(): UserSummary {
+        return UserSummary(name = name, userId = userId, profileImageUrl = profileImageUrl)
     }
 }
 
@@ -43,7 +46,7 @@ enum class UserRelation {
 }
 
 val tempUserProfile = UserProfile(
-    name = "Abhishek Dhiman",
+    name = "Abhishek dhiman",
     userId = "abc123",
     profileImageUrl = "",
     gender = UserGender.MALE,

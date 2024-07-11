@@ -6,7 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.chattingApp.ui.screens.ChatListScreen
 import com.example.chattingApp.ui.screens.chatscreen.ChatScreen
-import com.example.chattingApp.ui.screens.discoverScreen.DiscoverPeopleScreenRoot
+import com.example.chattingApp.ui.screens.discoverscreen.DiscoverPeopleScreenRoot
 import com.example.chattingApp.ui.screens.editprofilescreen.EditProfileScreenRoot
 import com.example.chattingApp.ui.screens.profilescreen.ProfileScreenRoot
 import com.example.chattingApp.ui.screens.requestscreen.RequestScreenRoot
