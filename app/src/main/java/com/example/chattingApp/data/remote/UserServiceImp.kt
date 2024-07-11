@@ -81,11 +81,11 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
             db.runTransaction { transaction ->
                 transaction.set(
                     toUserIncomingRequestRef,
-                    mapOf("userId" to fromUserId, "createdAt" to FieldValue.serverTimestamp())
+                    mapOf("user_id" to fromUserId, "created_at" to FieldValue.serverTimestamp())
                 )
                 transaction.set(
                     fromUserOutgoingRequestRef,
-                    mapOf("userId" to toUserId, "createdAt" to FieldValue.serverTimestamp())
+                    mapOf("user_id" to toUserId, "created_at" to FieldValue.serverTimestamp())
                 )
                 Log.i(tempTag(), "Transaction successfully committed")
             }.await()
@@ -192,13 +192,14 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
      * can remove this "getUserProfileDetails(document.id)" by duplication
      * instead of storing user_id store user summary but then every time user changes
      * name or profile pic have to send push notification
+     * i think duplication is much better so todo
      */
     override suspend fun getUserIncomingConnectRequests(userId: String): List<UserProfileDto> {
         return withContext(Dispatchers.IO) {
             try {
                 val incomingRequestSnapshot =
                     db.collection("users_details").document(userId).collection("incoming_requests")
-                        .orderBy("createdAt", Query.Direction.DESCENDING)
+                        .orderBy("created_at", Query.Direction.DESCENDING)
                         .get()
                         .await()
 
