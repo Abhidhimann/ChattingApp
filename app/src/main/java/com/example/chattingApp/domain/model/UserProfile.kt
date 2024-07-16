@@ -1,6 +1,6 @@
 package com.example.chattingApp.domain.model
 
-import com.example.chattingApp.data.remote.dto.UserProfileDto
+import com.example.chattingApp.data.remote.dto.UserProfileResponse
 
 
 data class UserProfile(
@@ -16,8 +16,8 @@ data class UserProfile(
     var friends: List<UserSummary> = emptyList(),
     var relation: UserRelation = UserRelation.NON_FRIEND
 ) {
-    fun toUserProfileDto(): UserProfileDto {
-        return UserProfileDto(
+    fun toUserProfileDto(): UserProfileResponse {
+        return UserProfileResponse(
             name = name,
             userId = userId,
             profileImageUrl = profileImageUrl,

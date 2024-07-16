@@ -1,36 +1,31 @@
 package com.example.chattingApp.data.remote
 
 import android.util.Log
-import com.example.chattingApp.data.remote.dto.SingleChatDto
-import com.example.chattingApp.data.remote.dto.UserSummaryDto
+import com.example.chattingApp.data.remote.dto.SingleChatResponse
+import com.example.chattingApp.data.remote.dto.UserSummaryResponse
 import com.example.chattingApp.utils.classTag
 import com.example.chattingApp.utils.tempTag
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import kotlin.math.sin
 
 class SingleChatServiceImp(private val db: FirebaseFirestore) : SingleChatService {
     override suspend fun createSingleChat(
-        originator: UserSummaryDto,
-        recipient: UserSummaryDto
+        originator: UserSummaryResponse,
+        recipient: UserSummaryResponse
     ): Int {
         return withContext(Dispatchers.IO) {
-            val singleChatDto = SingleChatDto(
+            val singleChatResponse = SingleChatResponse(
                 originator = originator,
                 recipient = recipient,
                 participantIds = listOf(originator.userId, recipient.userId)
             )
             try {
-                val docRef = db.collection("singleChat").add(singleChatDto).await()
+                val docRef = db.collection("singleChat").add(singleChatResponse).await()
                 docRef.update("chatId", docRef.id)
                 Log.i(classTag(), "chat created with id ${docRef.id}")
                 return@withContext 1
@@ -41,7 +36,7 @@ class SingleChatServiceImp(private val db: FirebaseFirestore) : SingleChatServic
         }
     }
 
-    override suspend fun updateUserSummaryInChat(chatId: String, userSummary: UserSummaryDto): Int {
+    override suspend fun updateUserSummaryInChat(chatId: String, userSummary: UserSummaryResponse): Int {
         return withContext(Dispatchers.IO) {
             try {
                 val singleChatDto = getSingleChat(chatId)
@@ -67,18 +62,18 @@ class SingleChatServiceImp(private val db: FirebaseFirestore) : SingleChatServic
         }
     }
 
-    override suspend fun getSingleChat(chatId: String): SingleChatDto? {
+    override suspend fun getSingleChat(chatId: String): SingleChatResponse? {
         return withContext(Dispatchers.IO) {
             try {
                 val singleChatSnapshot = db.collection("singleChat").document(chatId).get().await()
-                return@withContext singleChatSnapshot.toObject(SingleChatDto::class.java)
+                return@withContext singleChatSnapshot.toObject(SingleChatResponse::class.java)
             } catch (e: Exception) {
                 return@withContext null
             }
         }
     }
 
-    override suspend fun observeSingleChats(userId: String): Flow<SingleChatDto> =
+    override suspend fun observeSingleChats(userId: String): Flow<SingleChatResponse> =
         callbackFlow {
             val querySnapshot =
                 db.collection("singleChat").whereArrayContains("participantIds", userId)
@@ -90,7 +85,7 @@ class SingleChatServiceImp(private val db: FirebaseFirestore) : SingleChatServic
                 }
 
                 snapshots?.documentChanges?.forEach { documentChange ->
-                    val singleChat = documentChange.document.toObject(SingleChatDto::class.java)
+                    val singleChat = documentChange.document.toObject(SingleChatResponse::class.java)
                     trySend(singleChat).isSuccess
                 }
             }
@@ -99,8 +94,8 @@ class SingleChatServiceImp(private val db: FirebaseFirestore) : SingleChatServic
 
 
     override suspend fun acceptConnectRequestAndCreateChat(
-        toUser: UserSummaryDto,
-        fromUser: UserSummaryDto
+        toUser: UserSummaryResponse,
+        fromUser: UserSummaryResponse
     ): Int {
         return withContext(Dispatchers.IO) {
             try {
@@ -132,14 +127,14 @@ class SingleChatServiceImp(private val db: FirebaseFirestore) : SingleChatServic
                     transaction.set(toUserFriendRef, mapOf("userId" to fromUser.userId))
                     transaction.set(fromUserFriendRef, mapOf("userId" to toUser.userId))
 
-                    val singleChatDto = SingleChatDto(
+                    val singleChatResponse = SingleChatResponse(
                         chatId = singleChatRef.id,
                         originator = fromUser,
                         recipient = toUser,
                         participantIds = listOf(toUser.userId, fromUser.userId)
                     )
 
-                    transaction.set(singleChatRef, singleChatDto)
+                    transaction.set(singleChatRef, singleChatResponse)
                     transaction.update(singleChatRef, "chatId", singleChatRef.id)
 
                     1

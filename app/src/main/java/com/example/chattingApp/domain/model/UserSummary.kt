@@ -1,6 +1,6 @@
 package com.example.chattingApp.domain.model
 
-import com.example.chattingApp.data.remote.dto.UserSummaryDto
+import com.example.chattingApp.data.remote.dto.UserSummaryResponse
 
 
 // short version of user ( only on app side)
@@ -9,8 +9,8 @@ data class UserSummary(
     var userId: String = "",
     var profileImageUrl: String = "",
 ) {
-    fun toUserSummaryDto(): UserSummaryDto {
-        return UserSummaryDto(name = name, userId = userId, profileImageUrl = profileImageUrl)
+    fun toUserSummaryDto(): UserSummaryResponse {
+        return UserSummaryResponse(name = name, userId = userId, profileImageUrl = profileImageUrl)
     }
 }
 

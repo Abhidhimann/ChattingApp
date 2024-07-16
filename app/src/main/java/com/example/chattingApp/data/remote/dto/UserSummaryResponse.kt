@@ -4,7 +4,7 @@ import com.example.chattingApp.domain.model.UserSummary
 import com.google.firebase.firestore.PropertyName
 
 // delete this class
-data class UserSummaryDto (
+data class UserSummaryResponse (
     @get:PropertyName("name")
     @set:PropertyName("name")
     var name: String = "",

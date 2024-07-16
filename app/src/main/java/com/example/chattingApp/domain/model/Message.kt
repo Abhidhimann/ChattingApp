@@ -1,7 +1,7 @@
 package com.example.chattingApp.domain.model
 
 import androidx.compose.runtime.mutableStateListOf
-import com.example.chattingApp.data.remote.dto.MessageDto
+import com.example.chattingApp.data.remote.dto.MessageResponse
 
 data class Message(
     var messageId: String = "",
@@ -12,8 +12,8 @@ data class Message(
     val conversationId: String,
     val type: MessageType? = null
 ) {
-    fun toMessageDto(): MessageDto {
-        return MessageDto(
+    fun toMessageDto(): MessageResponse {
+        return MessageResponse(
             messageId = messageId,
             textContent = textContent,
             senderId = senderId,

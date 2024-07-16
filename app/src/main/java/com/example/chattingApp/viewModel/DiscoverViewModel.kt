@@ -7,9 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.chattingApp.domain.model.UserProfile
-import com.example.chattingApp.domain.model.UserRelation
-import com.example.chattingApp.domain.model.UserSummary
-import com.example.chattingApp.domain.repository.UserServiceRepository
+import com.example.chattingApp.data.repository.UserServiceRepositoryImpl
 import com.example.chattingApp.ui.screens.discoverscreen.DiscoverScreenEvent
 import com.example.chattingApp.ui.screens.discoverscreen.DiscoverScreenState
 import com.example.chattingApp.utils.classTag
@@ -22,7 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DiscoverViewModel @Inject constructor(
-    private val repository: UserServiceRepository
+    private val repository: UserServiceRepositoryImpl
 ) : ViewModel() {
 
     var state by mutableStateOf(DiscoverScreenState())

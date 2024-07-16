@@ -1,9 +1,9 @@
 package com.example.chattingApp.data.remote
 
 import android.util.Log
-import com.example.chattingApp.data.remote.dto.SingleChatDto
-import com.example.chattingApp.data.remote.dto.UserProfileDto
-import com.example.chattingApp.data.remote.dto.UserSummaryDto
+import com.example.chattingApp.data.remote.dto.SingleChatResponse
+import com.example.chattingApp.data.remote.dto.UserProfileResponse
+import com.example.chattingApp.data.remote.dto.UserSummaryResponse
 import com.example.chattingApp.utils.classTag
 import com.example.chattingApp.utils.tempTag
 import com.google.firebase.firestore.DocumentReference
@@ -24,7 +24,7 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
 
     // todo change user then it will be o(1) instead of o(n) in
     override suspend fun createUser(): Result<Any> {
-        val userDto = UserProfileDto()
+        val userDto = UserProfileResponse()
         try {
             val docRef = db.collection("users_details").add(userDto).await()
             docRef.update("user_id", docRef.id).await()
@@ -45,7 +45,7 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
         }
     }
 
-    override suspend fun updateUserProfile(userId: String, userProfile: UserProfileDto): Int {
+    override suspend fun updateUserProfile(userId: String, userProfile: UserProfileResponse): Int {
         try {
             db.collection("users_details").document(userId).set(userProfile)
                 .await()
@@ -118,7 +118,7 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
     override suspend fun observeNonConnectedUsers(
         fromUserId: String,
         friendsIdList: List<String>
-    ): Flow<UserProfileDto> =
+    ): Flow<UserProfileResponse> =
         callbackFlow {
             val querySnapshot =
                 db.collection("users_details")
@@ -132,7 +132,7 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
 
                 if (snapshots != null && !snapshots.isEmpty) {
                     for (document in snapshots.documentChanges) {
-                        val user = document.document.toObject(UserProfileDto::class.java)
+                        val user = document.document.toObject(UserProfileResponse::class.java)
                         Log.i(tempTag(), "got user $user")
                         if (user != null) {
                             trySend(user)
@@ -146,18 +146,18 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
         }
 
     // todo see if need to listen this change or not
-    override suspend fun getUserProfileDetails(userId: String): UserProfileDto? {
+    override suspend fun getUserProfileDetails(userId: String): UserProfileResponse? {
         return try {
             Log.i(tempTag(), "request userid is $userId")
             return db.collection("users_details").document(userId).get().await()
-                .toObject(UserProfileDto::class.java)
+                .toObject(UserProfileResponse::class.java)
         } catch (e: Exception) {
             Log.i(classTag(), "error in getting userProfile $e")
             null
         }
     }
 
-    override suspend fun getUserFriends(userId: String): List<UserProfileDto> {
+    override suspend fun getUserFriends(userId: String): List<UserProfileResponse> {
         return withContext(Dispatchers.IO) {
             try {
                 val friendSnapshot =
@@ -187,7 +187,7 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
      * name or profile pic have to send push notification
      * i think duplication is much better so todo
      */
-    override suspend fun getUserIncomingConnectRequests(userId: String): List<UserProfileDto> {
+    override suspend fun getUserIncomingConnectRequests(userId: String): List<UserProfileResponse> {
         return withContext(Dispatchers.IO) {
             try {
                 val incomingRequestSnapshot =
@@ -212,7 +212,7 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
         }
     }
 
-    override suspend fun getUserOutgoingConnectRequests(userId: String): List<UserProfileDto> {
+    override suspend fun getUserOutgoingConnectRequests(userId: String): List<UserProfileResponse> {
         return withContext(Dispatchers.IO) {
             try {
                 val outgoingRequestSnapshot =
@@ -236,7 +236,7 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
         }
     }
 
-    override suspend fun observeConnectionRequests(userId: String): Flow<UserProfileDto> =
+    override suspend fun observeConnectionRequests(userId: String): Flow<UserProfileResponse> =
         callbackFlow {
             val querySnapshot =
                 db.collection("/users_details/$userId/incoming_requests")
@@ -268,8 +268,8 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
         }
 
     override suspend fun acceptConnectRequestAndCreateChat(
-        toUser: UserSummaryDto,
-        fromUser: UserSummaryDto
+        toUser: UserSummaryResponse,
+        fromUser: UserSummaryResponse
     ): Int {
         return withContext(Dispatchers.IO) {
             try {
@@ -301,14 +301,14 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
                     transaction.set(toUserFriendRef, mapOf("userId" to fromUser.userId))
                     transaction.set(fromUserFriendRef, mapOf("userId" to toUser.userId))
 
-                    val singleChatDto = SingleChatDto(
+                    val singleChatResponse = SingleChatResponse(
                         chatId = singleChatRef.id,
                         originator = fromUser,
                         recipient = toUser,
                         participantIds = listOf(toUser.userId, fromUser.userId)
                     )
 
-                    transaction.set(singleChatRef, singleChatDto)
+                    transaction.set(singleChatRef, singleChatResponse)
                     transaction.update(singleChatRef, "chatId", singleChatRef.id)
 
                     1

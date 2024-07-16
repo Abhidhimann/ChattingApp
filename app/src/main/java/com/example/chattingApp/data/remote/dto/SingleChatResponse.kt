@@ -6,12 +6,12 @@ import com.google.firebase.firestore.ServerTimestamp
 import java.util.Date
 
 
-class SingleChatDto(
+class SingleChatResponse(
     var chatId: String = "",
     @ServerTimestamp
     var updatedAt: Date? = null,
-    var originator: UserSummaryDto? = null,
-    var recipient: UserSummaryDto? = null,
+    var originator: UserSummaryResponse? = null,
+    var recipient: UserSummaryResponse? = null,
     var participantIds: List<String> = emptyList(),
     var unreadMessageCount: Int = 0
     // todo for now not added lastMessage on chat, will change on db side, when db is clear that

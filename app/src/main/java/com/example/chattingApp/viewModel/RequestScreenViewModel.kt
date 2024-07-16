@@ -7,7 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.chattingApp.domain.model.UserSummary
-import com.example.chattingApp.domain.repository.UserServiceRepository
+import com.example.chattingApp.data.repository.UserServiceRepositoryImpl
 import com.example.chattingApp.ui.screens.requestscreen.RequestScreenEvent
 import com.example.chattingApp.ui.screens.requestscreen.RequestScreenState
 import com.example.chattingApp.utils.classTag
@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RequestScreenViewModel @Inject constructor(
-    private val repository: UserServiceRepository,
+    private val repository: UserServiceRepositoryImpl,
 ) : ViewModel() {
 
     var state by mutableStateOf(RequestScreenState())

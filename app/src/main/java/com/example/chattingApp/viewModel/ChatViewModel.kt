@@ -8,7 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.chattingApp.domain.model.Conversation
 import com.example.chattingApp.domain.model.Message
-import com.example.chattingApp.domain.repository.ChatRepository
+import com.example.chattingApp.data.repository.ChatRepositoryImpl
 import com.example.chattingApp.ui.screens.chatscreen.ChatScreenEvent
 import com.example.chattingApp.ui.screens.chatscreen.ChatScreenState
 import com.example.chattingApp.utils.classTag
@@ -21,7 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatViewModel @Inject constructor(
 //    private val chatSocketService: ChatSocketService,
-    private val chatRepository: ChatRepository
+    private val chatRepositoryImpl: ChatRepositoryImpl
 ) : ViewModel() {
 
 //    private val _state = mutableStateOf(ChatState())
@@ -34,14 +34,14 @@ class ChatViewModel @Inject constructor(
 
     private fun sendMessage(message: Message) {
         viewModelScope.launch {
-            chatRepository.sendMessage(message)
+            chatRepositoryImpl.sendMessage(message)
         }
     }
 
     private fun observeMessages(conversationId: String) {
         viewModelScope.launch {
             Log.i(tempTag(), "calling this")
-            chatRepository.observeMessages(conversationId)
+            chatRepositoryImpl.observeMessages(conversationId)
                 .catch { e ->
                     Log.e(classTag(), "Error observing messages", e)
                 }
@@ -74,7 +74,7 @@ class ChatViewModel @Inject constructor(
 
     private fun getConversationDetails(chatId: String) {
         viewModelScope.launch {
-            conversation = chatRepository.getSingleChat(chatId)
+            conversation = chatRepositoryImpl.getSingleChat(chatId)
         }
     }
 

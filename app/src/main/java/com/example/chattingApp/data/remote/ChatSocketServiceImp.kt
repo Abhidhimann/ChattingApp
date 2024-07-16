@@ -1,34 +1,30 @@
 package com.example.chattingApp.data.remote
 
 import android.util.Log
-import com.example.chattingApp.data.remote.dto.MessageDto
+import com.example.chattingApp.data.remote.dto.MessageResponse
 import com.example.chattingApp.utils.classTag
 import com.example.chattingApp.utils.tempTag
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.tasks.await
-import java.util.UUID
 
 //import com.google.firebase.database.getValue
 
 class ChatSocketServiceImp(private val db: FirebaseFirestore) : ChatSocketService {
 
-    override suspend fun sendMessage(messageDto: MessageDto): Int {
+    override suspend fun sendMessage(messageResponse: MessageResponse): Int {
         try {
 
             val result = db.runTransaction { transaction ->
                 val docRef =
-                    db.collection("singleChat").document(messageDto.conversationId)
+                    db.collection("singleChat").document(messageResponse.conversationId)
                         .collection("messages")
                         .document()
                 transaction.set(
                     docRef,
-                    messageDto
+                    messageResponse
                 ) // Perform the write operation inside the transaction
                 transaction.update(
                     docRef,
@@ -45,7 +41,7 @@ class ChatSocketServiceImp(private val db: FirebaseFirestore) : ChatSocketServic
         }
     }
 
-    override suspend fun observeMessages(conversationId: String): Flow<MessageDto> = callbackFlow {
+    override suspend fun observeMessages(conversationId: String): Flow<MessageResponse> = callbackFlow {
         val messagesRef =
             db.collection("singleChat/$conversationId/messages")
                 .orderBy("timeStamp")
@@ -58,7 +54,7 @@ class ChatSocketServiceImp(private val db: FirebaseFirestore) : ChatSocketServic
 
             if (snapshots != null && !snapshots.isEmpty) {
                 for (document in snapshots.documentChanges) {
-                    val message = document.document.toObject(MessageDto::class.java)
+                    val message = document.document.toObject(MessageResponse::class.java)
                     Log.i(tempTag(), "got message $message")
                     if (message != null) {
                         trySend(message)

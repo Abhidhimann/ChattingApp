@@ -4,7 +4,7 @@ import com.example.chattingApp.domain.model.Message
 import com.example.chattingApp.domain.model.MessageStatus
 import com.example.chattingApp.domain.model.MessageType
 
-data class MessageDto(
+data class MessageResponse(
     var messageId: String = "",
     var textContent: String = "",
     var senderId: String = "",

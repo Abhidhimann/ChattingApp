@@ -4,7 +4,7 @@ import com.example.chattingApp.domain.model.UserGender
 import com.example.chattingApp.domain.model.UserProfile
 import com.google.firebase.firestore.PropertyName
 
-data class UserProfileDto(
+data class UserProfileResponse(
     @get:PropertyName("name")
     @set:PropertyName("name")
     var name: String = "",

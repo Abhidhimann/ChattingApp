@@ -1,10 +1,8 @@
-package com.example.chattingApp.domain.repository
+package com.example.chattingApp.data.repository
 
 import android.content.SharedPreferences
 import android.util.Log
-import com.example.chattingApp.data.remote.SingleChatService
 import com.example.chattingApp.data.remote.UserService
-import com.example.chattingApp.data.remote.dto.UserSummaryDto
 import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.domain.model.UserRelation
 import com.example.chattingApp.domain.model.UserSummary
@@ -19,7 +17,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class UserServiceRepository @Inject constructor(
+class UserServiceRepositoryImpl @Inject constructor(
     private val userService: UserService,
     private val appPrefs: SharedPreferences
 ) {

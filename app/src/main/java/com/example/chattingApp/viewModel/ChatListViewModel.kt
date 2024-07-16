@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.chattingApp.domain.repository.ConversationRepository
+import com.example.chattingApp.data.repository.ConversationRepositoryImpl
 import com.example.chattingApp.ui.screens.chatlistscreen.ChatListScreenEvent
 import com.example.chattingApp.ui.screens.chatlistscreen.ChatListScreenState
 import com.example.chattingApp.utils.classTag
@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ChatListViewModel @Inject constructor(
-    private val repository: ConversationRepository,
+    private val repository: ConversationRepositoryImpl,
 ) : ViewModel() {
 
     var state by mutableStateOf(ChatListScreenState())
