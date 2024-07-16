@@ -45,9 +45,9 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
         }
     }
 
-    override suspend fun updateUserProfile(userId: String, userProfile: UserProfileResponse): Int {
+    override suspend fun updateUserProfile(userProfile: UserProfileResponse): Int {
         try {
-            db.collection("users_details").document(userId).set(userProfile)
+            db.collection("users_details").document(userProfile.userId).set(userProfile)
                 .await()
             return 1
         } catch (e: Exception) {

@@ -46,6 +46,7 @@ class ProfileScreenViewModel @Inject constructor(
 
     private fun fetchSelfProfile() = viewModelScope.launch {
         val userProfile = repository.getSelfProfileDetails()
+        Log.i(tempTag(), "got user profile is $userProfile")
         state = state.copy(userProfile = userProfile)
     }
 

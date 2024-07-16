@@ -1,6 +1,7 @@
 package com.example.chattingApp.ui.screens.editprofilescreen
 
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,6 +13,8 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -20,6 +23,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.example.chattingApp.domain.model.UserGender
 import com.example.chattingApp.domain.model.UserProfile
@@ -27,28 +35,58 @@ import com.example.chattingApp.domain.model.tempUserProfile
 import com.example.chattingApp.ui.BottomNavItem
 import com.example.chattingApp.ui.screens.profilescreen.ProfilePicture
 import com.example.chattingApp.ui.screens.profilescreen.SimpleScreenAppBar
+import com.example.chattingApp.utils.ToastUtil
+import com.example.chattingApp.viewModel.EditProfileViewModel
 
 
 @Composable
 fun EditProfileScreenRoot(navController: NavController) {
-
-    EditProfileScreenContent(userId = 1, state = EditProfileScreenState()) { event ->
+    val viewModel: EditProfileViewModel = hiltViewModel<EditProfileViewModel>()
+    EditProfileScreenContent(state = viewModel.state) { event ->
         when (event) {
-            is EditProfileScreenEvent.Cancel -> navController.navigate(BottomNavItem.goToProfileRoute())
-            else -> Unit
+            is EditProfileScreenEvent.CancelOrBack -> navController.navigate(BottomNavItem.goToProfileRoute())
+            else -> {
+                viewModel.onEvent(event)
+            }
         }
-        // viewModel action
     }
-
 }
 
 @Composable
 fun EditProfileScreenContent(
-    userId: Long,
     state: EditProfileScreenState,
     onEvent: (EditProfileScreenEvent) -> Unit
 ) {
-    val userProfile = state.profile
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(key1 = lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> {
+                    onEvent(EditProfileScreenEvent.FetchSelfProfile)
+                }
+
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    val userProfile = state.userProfile
+    val context = LocalContext.current.applicationContext
+
+    if (state.updatingResult == true) {
+        LaunchedEffect(state.updatingResult) {
+            ToastUtil.shortToast(context, "Update Successful")
+            onEvent(EditProfileScreenEvent.CancelOrBack)
+        }
+    } else if (state.updatingResult == false) {
+        LaunchedEffect(state.updatingResult) {
+            ToastUtil.shortToast(context, "Update failed, please try again later")
+        }
+    }
     Scaffold(
         topBar = {
             SimpleScreenAppBar(title = "Edit Profile", menuActions = {}, navigationIcon = {
@@ -57,14 +95,14 @@ fun EditProfileScreenContent(
                     "Back",
                     modifier = Modifier
                         .padding(horizontal = 12.dp)
-                        .clickable(onClick = { onEvent(EditProfileScreenEvent.Cancel) })
+                        .clickable(onClick = { onEvent(EditProfileScreenEvent.CancelOrBack) })
                 )
             })
         },
         modifier = Modifier.fillMaxSize(),
     ) { innerPadding ->
         EditProfileScreenSurface(
-            userProfile2 = userProfile,
+            userProfile = userProfile,
             modifier = Modifier
                 .padding(innerPadding)
                 .imePadding()
@@ -76,23 +114,17 @@ fun EditProfileScreenContent(
 
 @Composable
 fun EditProfileScreenSurface(
-    userProfile2: UserProfile?,
+    userProfile: UserProfile?,
     modifier: Modifier,
     onEvent: (EditProfileScreenEvent) -> Unit
 ) {
-    val newUser = UserProfile(
-        name = "",
-        userId = "",
-        profileImageUrl = "",
-        gender = UserGender.MALE,
-        aboutMe = "",
-        interests = "",
-        online = false
-    )
     val maxNameLength = 16 // use enum on constant somewhere
     val maxInterestsLength = 36
-    var userProfile by remember {
-        mutableStateOf(userProfile2 ?: newUser)
+    var updateUserProfile by remember {
+        mutableStateOf(userProfile)
+    }
+    LaunchedEffect(userProfile) {
+        updateUserProfile = userProfile
     }
     Column(
         modifier = modifier
@@ -102,7 +134,7 @@ fun EditProfileScreenSurface(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         ProfilePicture(
-            userProfile.profileImageUrl, modifier = Modifier
+            updateUserProfile?.profileImageUrl, modifier = Modifier
                 .padding(4.dp)
                 .size(240.dp)
                 .padding(4.dp),
@@ -116,9 +148,9 @@ fun EditProfileScreenSurface(
 
 
         OutlinedTextField(
-            value = userProfile.name,
+            value = updateUserProfile?.name ?: "",
             onValueChange = {
-                if (it.length < maxNameLength) userProfile = userProfile.copy(name = it)
+                if (it.length < maxNameLength) updateUserProfile = updateUserProfile?.copy(name = it)
             },
             singleLine = true,
             label = { Text("Name") },
@@ -129,8 +161,10 @@ fun EditProfileScreenSurface(
 
 
         OutlinedTextField(
-            value = userProfile.aboutMe,
-            onValueChange = { userProfile = userProfile.copy(aboutMe = it) },
+            value = updateUserProfile?.aboutMe ?: "",
+            onValueChange = {
+                updateUserProfile = updateUserProfile?.copy(aboutMe = it)
+            },
             label = { Text("About Me") },
             maxLines = 3,
             modifier = Modifier
@@ -139,10 +173,11 @@ fun EditProfileScreenSurface(
         )
 
         OutlinedTextField(
-            value = userProfile.interests,
+            value = updateUserProfile?.interests ?: "",
             maxLines = 1,
             onValueChange = {
-                if (it.length < maxInterestsLength) userProfile = userProfile.copy(interests = it)
+                if (it.length < maxInterestsLength) updateUserProfile =
+                    updateUserProfile?.copy(interests = it)
             },
             label = { Text("Interests") },
             modifier = Modifier
@@ -150,31 +185,44 @@ fun EditProfileScreenSurface(
                 .padding(8.dp)
         )
 
-
-        var selectedGender by remember { mutableStateOf(userProfile.gender) }
         Row(verticalAlignment = Alignment.CenterVertically) {
             RadioButton(
-                selected = selectedGender == UserGender.MALE,
-                onClick = { selectedGender = UserGender.MALE })
+                selected = updateUserProfile?.gender == UserGender.MALE,
+                onClick = {
+                    updateUserProfile = updateUserProfile?.copy(gender = UserGender.MALE)
+                })
             Text(
                 text = UserGender.MALE.value,
-                modifier = Modifier.clickable(onClick = { selectedGender = UserGender.MALE })
+                modifier = Modifier.clickable(onClick = {
+                    updateUserProfile = updateUserProfile?.copy(gender = UserGender.MALE)
+//                    selectedGender = UserGender.MALE
+                })
             )
             Spacer(modifier = Modifier.size(4.dp))
             RadioButton(
-                selected = selectedGender == UserGender.FEMALE,
-                onClick = { selectedGender = UserGender.FEMALE })
+                selected = updateUserProfile?.gender == UserGender.FEMALE,
+                onClick = {
+                    updateUserProfile = updateUserProfile?.copy(gender = UserGender.FEMALE)
+                })
             Text(
                 text = UserGender.FEMALE.value,
-                modifier = Modifier.clickable(onClick = { selectedGender = UserGender.FEMALE })
+                modifier = Modifier.clickable(onClick = {
+                    updateUserProfile = updateUserProfile?.copy(gender = UserGender.FEMALE)
+                })
             )
             Spacer(modifier = Modifier.size(4.dp))
             RadioButton(
-                selected = selectedGender == UserGender.OTHERS,
-                onClick = { selectedGender = UserGender.OTHERS })
+                selected = updateUserProfile?.gender == UserGender.OTHERS,
+                onClick = {
+//                    selectedGender = UserGender.OTHERS
+                    updateUserProfile = updateUserProfile?.copy(gender = UserGender.OTHERS)
+                }
+            )
             Text(
                 text = UserGender.OTHERS.value,
-                modifier = Modifier.clickable(onClick = { selectedGender = UserGender.OTHERS })
+                modifier = Modifier.clickable(onClick = {
+                    updateUserProfile = updateUserProfile?.copy(gender = UserGender.OTHERS)
+                })
             )
         }
 
@@ -186,7 +234,7 @@ fun EditProfileScreenSurface(
                 .padding(start = 15.dp, end = 15.dp),
         ) {
             Button(
-                onClick = { onEvent(EditProfileScreenEvent.Cancel) },
+                onClick = { onEvent(EditProfileScreenEvent.CancelOrBack) },
                 modifier = Modifier
                     .weight(1f)
                     .height(50.dp)
@@ -198,7 +246,13 @@ fun EditProfileScreenSurface(
             }
             Spacer(modifier = Modifier.weight(0.1f))
             Button(
-                onClick = { },
+                onClick = {
+                    if (updateUserProfile == null) {
+                        // todo toast
+                    } else {
+                        onEvent(EditProfileScreenEvent.UpdateProfileDetails(updateUserProfile!!))
+                    }
+                },
                 modifier = Modifier
                     .weight(1f)
                     .height(50.dp)
@@ -215,7 +269,7 @@ fun EditProfileScreenSurface(
 @Preview(showBackground = true)
 @Composable
 fun ProfileScreenPreview() {
-    EditProfileScreenContent(userId = 1, state = EditProfileScreenState(tempUserProfile)) {
+    EditProfileScreenContent(state = EditProfileScreenState(tempUserProfile)) {
 
     }
 }

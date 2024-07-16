@@ -88,11 +88,11 @@ class UserServiceRepositoryImpl @Inject constructor(
             }
     }
 
-    suspend fun getUserProfileDtoDetails(userId: String) = withContext(Dispatchers.IO) {
+    private suspend fun getUserProfileDtoDetails(userId: String) = withContext(Dispatchers.IO) {
         return@withContext userService.getUserProfileDetails(userId)
     }
 
-    suspend fun getUserFriends(userId: String) = withContext(Dispatchers.IO) {
+    private suspend fun getUserFriends(userId: String) = withContext(Dispatchers.IO) {
         return@withContext userService.getUserFriends(userId)
     }
 
@@ -110,20 +110,28 @@ class UserServiceRepositoryImpl @Inject constructor(
 
     suspend fun getSelfProfileDetails(): UserProfile? {
         return withContext(Dispatchers.IO) {
-            val fromUser = getUser.value
-            if (fromUser == null) {
+            val selfUser = getUser.value
+            if (selfUser == null) {
                 Log.i(tempTag(), "Error in getting userId")
                 return@withContext null
             }
-            getUserProfileDtoDetails(fromUser.userId)?.toUserProfile()
+            getUserProfileDtoDetails(selfUser.userId)?.toUserProfile()
         }
     }
 
-    suspend fun updateUserProfile(userId: String, userProfile: UserProfile) =
+    suspend fun updateUserProfile(userProfile: UserProfile): Int =
         withContext(Dispatchers.IO) {
-            if (userService.updateUserProfile(userId, userProfile.toUserProfileDto()) == 1) {
-                appPrefs.edit().putBoolean("user_profile", true).apply()
+            if (userService.updateUserProfile(userProfile.toUserProfileDto()) == 1) {
+                saveUserInPref(
+                    UserSummary(
+                        name = userProfile.name,
+                        userId = userProfile.userId,
+                        profileImageUrl = userProfile.profileImageUrl
+                    )
+                )
+                return@withContext 1
             }
+            return@withContext -1
             // todo later inject local datasource and update db here
         }
 
