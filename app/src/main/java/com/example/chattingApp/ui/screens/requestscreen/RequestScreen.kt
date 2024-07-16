@@ -36,18 +36,28 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.navigation.NavController
 import com.example.chattingApp.domain.model.UserProfile
-import com.example.chattingApp.domain.model.UserSummary
 import com.example.chattingApp.domain.model.tempUserProfile
-import com.example.chattingApp.domain.model.tempUserSummary
+import com.example.chattingApp.ui.BottomNavItem
 import com.example.chattingApp.ui.screens.profilescreen.ProfilePicture
 import com.example.chattingApp.ui.screens.profilescreen.SimpleScreenAppBar
 import com.example.chattingApp.viewModel.RequestScreenViewModel
 
 @Composable
-fun RequestScreenRoot() {
+fun RequestScreenRoot(navController: NavController) {
     val viewModel: RequestScreenViewModel = hiltViewModel<RequestScreenViewModel>()
-    RequestScreen(state = viewModel.state, onEvent = viewModel::onEvent)
+    RequestScreen(state = viewModel.state) { event ->
+        when (event) {
+            is RequestScreenEvent.RequestedUserProfileClicked -> navController.navigate(
+                BottomNavItem.goToProfileRoute(
+                    event.userId
+                )
+            )
+
+            else -> viewModel.onEvent(event)
+        }
+    }
 }
 
 @Composable
@@ -94,13 +104,13 @@ fun RequestScreenContent(
     val requestedUsers = state.requestedUsers
     LazyColumn(modifier = modifier) {
         items(requestedUsers) { userProfile ->
-            requestUserCard(userSummary = userProfile, onEvent)
+            requestUserCard(userProfile = userProfile, onEvent)
         }
     }
 }
 
 @Composable
-fun requestUserCard(userSummary: UserProfile, onEvent: (RequestScreenEvent) -> Unit) {
+fun requestUserCard(userProfile: UserProfile, onEvent: (RequestScreenEvent) -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth(),
@@ -108,11 +118,11 @@ fun requestUserCard(userSummary: UserProfile, onEvent: (RequestScreenEvent) -> U
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(10.dp)) {
             ProfilePicture(
-                picUrl = userSummary.profileImageUrl,
+                picUrl = userProfile.profileImageUrl,
                 modifier = Modifier
                     .size(42.dp)
                     .clickable {
-                        onEvent(RequestScreenEvent.RequestedUserProfileClicked(userSummary.userId))
+                        onEvent(RequestScreenEvent.RequestedUserProfileClicked(userProfile.userId))
                     },
                 elevation = CardDefaults.elevatedCardElevation(2.dp),
                 shapes = CircleShape,
@@ -123,20 +133,22 @@ fun requestUserCard(userSummary: UserProfile, onEvent: (RequestScreenEvent) -> U
             )
             Spacer(modifier = Modifier.width(10.dp))
             Text(
-                text = (if (userSummary.name.isNullOrEmpty()) "Anonymous" else userSummary.name) + " wants to message you.",
+                text = (if (userProfile.name.isNullOrEmpty()) "Anonymous" else userProfile.name) + " wants to message you.",
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier
                     .weight(0.7f)
                     .clickable {
-                        onEvent(RequestScreenEvent.RequestedUserProfileClicked(userSummary.userId))
+                        onEvent(RequestScreenEvent.RequestedUserProfileClicked(userProfile.userId))
                     },
             )
-            Row(modifier = Modifier
-                .padding(start = 2.dp, end = 4.dp)
-                .wrapContentWidth()) {
+            Row(
+                modifier = Modifier
+                    .padding(start = 2.dp, end = 4.dp)
+                    .wrapContentWidth()
+            ) {
                 OutlinedIconButton(
                     onClick = {
-                        onEvent(RequestScreenEvent.RejectRequest(userSummary.userId))
+                        onEvent(RequestScreenEvent.RejectRequest(userProfile.userId))
                     },
                     shape = CircleShape,
                     modifier = Modifier.size(26.dp)
@@ -154,7 +166,7 @@ fun requestUserCard(userSummary: UserProfile, onEvent: (RequestScreenEvent) -> U
                 OutlinedIconButton(
                     onClick = {
                         checkButtonClick.value = true
-                        onEvent(RequestScreenEvent.AcceptRequest(userSummary.userId))
+                        onEvent(RequestScreenEvent.AcceptRequest(userProfile.toUserSummary()))
                     },
                     shape = CircleShape,
                     modifier = Modifier.size(26.dp)

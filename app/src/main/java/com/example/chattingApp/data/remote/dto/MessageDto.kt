@@ -1,29 +1,34 @@
 package com.example.chattingApp.data.remote.dto
 
 import com.example.chattingApp.domain.model.Message
-import com.google.firebase.firestore.PropertyName
-
+import com.example.chattingApp.domain.model.MessageStatus
+import com.example.chattingApp.domain.model.MessageType
 
 data class MessageDto(
-    @get:PropertyName("message_id")
-    @set:PropertyName("message_id")
-    var messageId: Long = 0,
-    @get:PropertyName("text_content")
-    @set:PropertyName("text_content")
+    var messageId: String = "",
     var textContent: String = "",
-    @get:PropertyName("sender_id")
-    @set:PropertyName("sender_id")
-    var senderId: Long = 0,
-    @get:PropertyName("conversation_id")
-    @set:PropertyName("conversation_id")
+    var senderId: String = "",
+    var status: String = MessageStatus.INITIAL.name,
+    var timeStamp: Long = 0,
     var conversationId: String = "",
-    @get:PropertyName("time_stamp")
-    @set:PropertyName("time_stamp")
-    var timeStamp: String = ""
     // var because custom property name
 ) {
-    fun toMessage(): Message {
-        return Message(this.messageId, this.textContent, this.senderId, this.conversationId, this.timeStamp)
+    fun toMessage(currentUserId: String): Message {
+//        val messageStatus = try {
+//            MessageStatus.valueOf(status)
+//        } catch (e: Exception) {
+//            MessageStatus.INITIAL
+//        }
+        val messageStatus = MessageStatus.valueOf(status)
+        return Message(
+            messageId = messageId,
+            textContent = textContent,
+            senderId = senderId,
+            status = messageStatus,
+            timeStamp = timeStamp,
+            conversationId = conversationId,
+            type = if (senderId == currentUserId) MessageType.OUTGOING else MessageType.INCOMING
+        )
     }
 }
 

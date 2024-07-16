@@ -47,29 +47,32 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.navigation.NavController
 import com.example.chattingApp.domain.model.Message
-import com.example.chattingApp.domain.model.messageList
-import com.example.chattingApp.ui.screens.ChatScreenAppBar
+import com.example.chattingApp.domain.model.MessageType
+import com.example.chattingApp.domain.model.tempMessageList
+import com.example.chattingApp.ui.screens.chatlistscreen.ChatScreenAppBar
 import com.example.chattingApp.utils.tempTag
 import com.example.chattingApp.viewModel.ChatViewModel
 
 
 @Composable
-fun ChatScreen() {
+fun ChatScreenRoot(chatId: String, navController: NavController) {
     val viewModel: ChatViewModel = hiltViewModel<ChatViewModel>()
 
     // if action is in ui then handle by lamba function in ui ( live navigation)
-    ChatScreenContent(state = viewModel.state, onEvent = viewModel::onEvent)
+    ChatScreen(chatId = chatId, state = viewModel.state, onEvent = viewModel::onEvent)
 }
 
 @Composable
-fun ChatScreenContent(state: ChatScreenState, onEvent: (ChatScreenEvent) -> Unit) {
+fun ChatScreen(chatId: String, state: ChatScreenState, onEvent: (ChatScreenEvent) -> Unit) {
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(key1 = lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_START) {
-                onEvent(ChatScreenEvent.ObserverMessages("138fc4f2-2da1-4071-bfd8-d2a4466ddae0")) // here get conversation id by state
+                onEvent(ChatScreenEvent.ObserverMessages(chatId)) // here get conversation id by state
+                onEvent(ChatScreenEvent.GetConversationDetails(chatId))
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -84,12 +87,11 @@ fun ChatScreenContent(state: ChatScreenState, onEvent: (ChatScreenEvent) -> Unit
             ChatScreenAppBar(title = "Messages") {}
         },
     ) { innerPadding ->
-        Log.i("ABHITAG", "inner padding $innerPadding")
-        ChatSurface(
+        ChatContent(
             modifier = Modifier
                 .padding(innerPadding)
                 .imePadding()
-                .fillMaxSize(), 13,
+                .fillMaxSize(), "",
             state,
             onEvent
         )
@@ -97,9 +99,9 @@ fun ChatScreenContent(state: ChatScreenState, onEvent: (ChatScreenEvent) -> Unit
 }
 
 @Composable
-fun ChatSurface(
+fun ChatContent(
     modifier: Modifier,
-    userId: Long,
+    userId: String,
     state: ChatScreenState,
     onEvent: (ChatScreenEvent) -> Unit = {}
 ) {
@@ -118,7 +120,7 @@ fun ChatSurface(
             }) {
             items(messages) { message ->
                 Log.i(tempTag(), "in class get message $message")
-                ChatMessageItem(message = message, isSelf = message.senderId == userId)
+                ChatMessageItem(message = message)
             }
         }
         MessageInputBox(modifier = Modifier
@@ -128,21 +130,14 @@ fun ChatSurface(
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
             }) { text ->
-            val message = Message(
-                12,
-                text,
-                userId,
-                "138fc4f2-2da1-4071-bfd8-d2a4466ddae0",
-                System.currentTimeMillis().toString()
-            )
-            onEvent(ChatScreenEvent.SendMessage(message))
+            onEvent(ChatScreenEvent.SendMessage(text))
         }
     }
 }
 
 
 @Composable
-fun ChatMessageItem(message: Message, isSelf: Boolean) {
+fun ChatMessageItem(message: Message) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -150,13 +145,13 @@ fun ChatMessageItem(message: Message, isSelf: Boolean) {
     ) {
         Box(
             modifier = Modifier
-                .align(if (isSelf) Alignment.End else Alignment.Start)
+                .align(if (message.type == MessageType.OUTGOING) Alignment.End else Alignment.Start)
                 .clip(
                     RoundedCornerShape(
                         topStart = 48f,
                         topEnd = 48f,
-                        bottomStart = if (isSelf) 48f else 0f,
-                        bottomEnd = if (isSelf) 0f else 48f
+                        bottomStart = if (message.type == MessageType.OUTGOING) 48f else 0f,
+                        bottomEnd = if (message.type == MessageType.OUTGOING) 0f else 48f
                     )
                 )
                 .background(MaterialTheme.colorScheme.secondary)
@@ -244,6 +239,6 @@ fun MessageInputBox(
 @Preview(showBackground = true)
 @Composable
 fun ChatScreenPreview() {
-    ChatScreenContent(state = ChatScreenState(messageList)) {
+    ChatScreen(chatId = "", state = ChatScreenState(tempMessageList)) {
     }
 }

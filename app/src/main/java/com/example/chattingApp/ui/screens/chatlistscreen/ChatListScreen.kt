@@ -1,4 +1,4 @@
-package com.example.chattingApp.ui.screens
+package com.example.chattingApp.ui.screens.chatlistscreen
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -29,6 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,39 +37,85 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.example.chattingApp.domain.model.UserProfile
-import com.example.chattingApp.domain.model.tempUserProfile
+import com.example.chattingApp.domain.model.Conversation
+import com.example.chattingApp.domain.model.tempConversations
+import com.example.chattingApp.ui.BottomNavItem
 import com.example.chattingApp.ui.screens.profilescreen.ProfilePicture
+import com.example.chattingApp.viewModel.ChatListViewModel
+import java.time.LocalDate
+import java.time.ZoneId
+
 
 @Composable
-fun ChatListScreen(navController: NavController) {
+fun ChatListScreenRoot(navController: NavController) {
+    val viewModel: ChatListViewModel = hiltViewModel<ChatListViewModel>()
+
+    ChatListScreen(state = viewModel.state) { event ->
+        when (event) {
+            is ChatListScreenEvent.OpenConversation -> {
+                if (event.conversationId.isEmpty()) {
+                    // toast or error
+                } else
+                    navController.navigate("chatScreen/${event.conversationId}")
+            }
+
+            else -> {
+                viewModel.onEvent(event)
+            }
+        }
+
+    }
+}
+
+@Composable
+fun ChatListScreen(state: ChatListScreenState, onEvent: (ChatListScreenEvent) -> Unit) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(key1 = lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> {
+                    onEvent(ChatListScreenEvent.ObserveConversations)
+                }
+
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             ChatScreenAppBar(title = "Messages") {}
         },
     ) { innerPadding ->
-        UserListSurface(
+        UserListContent(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
-            users = listOf(tempUserProfile),
-            navController = navController
+            state,
+            onEvent
         )
     }
 }
 
 @Composable
-fun UserListSurface(
+fun UserListContent(
     modifier: Modifier,
-    users: List<UserProfile>,
-    navController: NavController
+    state: ChatListScreenState,
+    onEvent: (ChatListScreenEvent) -> Unit
 ) {
     Surface(
         modifier = modifier
@@ -78,9 +125,9 @@ fun UserListSurface(
                 .fillMaxWidth()
                 .wrapContentHeight(align = Alignment.Top),
         ) {
-            items(users) {
-                ProfileCard(userProfile = it) {
-                    navController.navigate(route = "chatScreen")
+            items(state.conversations) {
+                ConversationCard(conversation = it) { conversationId ->
+                    onEvent(ChatListScreenEvent.OpenConversation(conversationId))
                 }
             }
         }
@@ -90,20 +137,22 @@ fun UserListSurface(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreenAppBar(title: String, onIconClick: () -> Unit) {
-    CenterAlignedTopAppBar(
-        title = { Text(text = title) },
-        navigationIcon =
-        {
-            Icon(
-                imageVector = Icons.Default.Search,
-                "Search",
-                modifier = Modifier
-                    .padding(horizontal = 12.dp)
-                    .clickable(onClick = { onIconClick.invoke() })
-            )
-        },
-        actions = { ChatScreenMenuActions() }
-    )
+    Surface(shadowElevation = 2.dp) {
+        CenterAlignedTopAppBar(
+            title = { Text(text = title) },
+            navigationIcon =
+            {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    "Search",
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp)
+                        .clickable(onClick = { onIconClick.invoke() })
+                )
+            },
+            actions = { ChatScreenMenuActions() }
+        )
+    }
 }
 
 @Composable
@@ -129,27 +178,28 @@ fun ChatScreenMenuActions() {
 }
 
 @Composable
-fun ProfileCard(userProfile: UserProfile, onClick: () -> Unit) {
-    Card(
+fun ConversationCard(conversation: Conversation, onClick: (String) -> Unit) {
+    Surface(
         shape = RectangleShape,
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .clickable { onClick.invoke() },
+            .clickable { onClick(conversation.conversationId) },
+        shadowElevation = 2.dp
     ) {
         Row(
             modifier = Modifier
+                .padding(start = 2.dp)
                 .fillMaxSize()
                 .background(color = MaterialTheme.colorScheme.surface),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start
         ) {
             ProfilePicture(
-                userProfile.profileImageUrl, modifier = Modifier
+                conversation.iconUri, modifier = Modifier
                     .padding(4.dp)
                     .size(56.dp)
-                    .padding(4.dp)
-                ,
+                    .padding(4.dp),
                 elevation = CardDefaults.elevatedCardElevation(0.dp),
                 shapes = CircleShape,
                 border = BorderStroke(
@@ -157,9 +207,10 @@ fun ProfileCard(userProfile: UserProfile, onClick: () -> Unit) {
                     color = MaterialTheme.colorScheme.primary
                 )
             )
-            ChatThreadDetails(
-                userName = userProfile.name,
-                lastText = "Hi how are you",
+            ConversationDetails(
+                userName = conversation.title,
+                lastText = conversation.lastMessage,
+                updateAt = conversation.updateAt?.atZone(ZoneId.systemDefault())?.toLocalDate(),
                 modifier = Modifier.fillMaxSize()
             )
         }
@@ -167,9 +218,10 @@ fun ProfileCard(userProfile: UserProfile, onClick: () -> Unit) {
 }
 
 @Composable
-fun ChatThreadDetails(
+fun ConversationDetails(
     userName: String,
     lastText: String,
+    updateAt: LocalDate?,
     modifier: Modifier,
 ) {
     ConstraintLayout(
@@ -200,7 +252,7 @@ fun ChatThreadDetails(
                     bottom.linkTo(parent.bottom)
                 }
         )
-        Text(text = "8:08 PM",
+        Text(text = updateAt?.toString() ?: "",
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier
                 .wrapContentHeight()
@@ -214,5 +266,7 @@ fun ChatThreadDetails(
 @Preview(showBackground = true)
 @Composable
 fun ChatListScreenPreview() {
-    ChatListScreen(rememberNavController())
+    ChatListScreen(ChatListScreenState(tempConversations)) {
+
+    }
 }

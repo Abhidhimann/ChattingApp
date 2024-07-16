@@ -18,22 +18,37 @@ import java.util.UUID
 
 class ChatSocketServiceImp(private val db: FirebaseFirestore) : ChatSocketService {
 
-    override suspend fun sendMessage(messageDto: MessageDto) {
-//        val conversationId = UUID.randomUUID().toString()
-//        messageDto.conversationId = conversationId
+    override suspend fun sendMessage(messageDto: MessageDto): Int {
         try {
-            val docRef = db.collection("messages").add(messageDto).await()
-            Log.i(classTag(), "message added with id ${docRef.id}")
+
+            val result = db.runTransaction { transaction ->
+                val docRef =
+                    db.collection("singleChat").document(messageDto.conversationId)
+                        .collection("messages")
+                        .document()
+                transaction.set(
+                    docRef,
+                    messageDto
+                ) // Perform the write operation inside the transaction
+                transaction.update(
+                    docRef,
+                    "messageId",
+                    docRef.id
+                ) // Update the document with the generated ID
+                docRef.id // Return the document ID from the transaction
+            }.await()
+            Log.i(classTag(), "message added")
+            return 1
         } catch (e: Exception) {
             Log.i(classTag(), "error in adding message $e")
+            return -1
         }
     }
 
     override suspend fun observeMessages(conversationId: String): Flow<MessageDto> = callbackFlow {
         val messagesRef =
-            db.collection("messages")
-                .whereEqualTo("conversation_id", conversationId)
-                .orderBy("time_stamp")
+            db.collection("singleChat/$conversationId/messages")
+                .orderBy("timeStamp")
 
         val listenerRegistration = messagesRef.addSnapshotListener { snapshots, e ->
             if (e != null) {
@@ -44,7 +59,7 @@ class ChatSocketServiceImp(private val db: FirebaseFirestore) : ChatSocketServic
             if (snapshots != null && !snapshots.isEmpty) {
                 for (document in snapshots.documentChanges) {
                     val message = document.document.toObject(MessageDto::class.java)
-                    Log.i(tempTag(),"got message $message")
+                    Log.i(tempTag(), "got message $message")
                     if (message != null) {
                         trySend(message)
                     }

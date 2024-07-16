@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.example.chattingApp.data.remote.ChatSocketService
 import com.example.chattingApp.data.remote.ChatSocketServiceImp
+import com.example.chattingApp.data.remote.SingleChatService
+import com.example.chattingApp.data.remote.SingleChatServiceImp
 import com.example.chattingApp.data.remote.UserService
 import com.example.chattingApp.data.remote.UserServiceImp
 import com.google.firebase.Firebase
@@ -26,6 +28,7 @@ class AppModules {
     fun providesFirebaseDatabase(): FirebaseFirestore {
         return Firebase.firestore
     }
+
     @Provides
     @Singleton
     fun providesChatSocketService(firebaseDatabase: FirebaseFirestore): ChatSocketService {
@@ -40,8 +43,14 @@ class AppModules {
 
     @Provides
     @Singleton
-    fun provideSharedPreferences(application: Application): SharedPreferences {
+    fun providesAppSharedPreferences(application: Application): SharedPreferences {
         return application.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+    }
+
+    @Provides
+    @Singleton
+    fun providesSingleChatService(firebaseDatabase: FirebaseFirestore): SingleChatService {
+        return SingleChatServiceImp(firebaseDatabase)
     }
 
 //    @Provides

@@ -6,9 +6,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.chattingApp.data.remote.ChatSocketService
-import com.example.chattingApp.data.remote.FirebaseMessageService
+import com.example.chattingApp.domain.model.Conversation
 import com.example.chattingApp.domain.model.Message
+import com.example.chattingApp.domain.repository.ChatRepository
 import com.example.chattingApp.ui.screens.chatscreen.ChatScreenEvent
 import com.example.chattingApp.ui.screens.chatscreen.ChatScreenState
 import com.example.chattingApp.utils.classTag
@@ -20,7 +20,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
-    private val chatSocketService: ChatSocketService,
+//    private val chatSocketService: ChatSocketService,
+    private val chatRepository: ChatRepository
 ) : ViewModel() {
 
 //    private val _state = mutableStateOf(ChatState())
@@ -29,45 +30,72 @@ class ChatViewModel @Inject constructor(
     var state by mutableStateOf(ChatScreenState())
         private set
 
+    private var conversation: Conversation? = null
+
     private fun sendMessage(message: Message) {
         viewModelScope.launch {
-            chatSocketService.sendMessage(message.toMessageDto())
+            chatRepository.sendMessage(message)
         }
     }
 
-     private fun observeMessages(conversationId: String) {
+    private fun observeMessages(conversationId: String) {
         viewModelScope.launch {
             Log.i(tempTag(), "calling this")
-            chatSocketService.observeMessages(conversationId)
+            chatRepository.observeMessages(conversationId)
                 .catch { e ->
                     Log.e(classTag(), "Error observing messages", e)
                 }
-                .collect { messageDto ->
-                    Log.i(classTag(), "got message from flow $messageDto")
-//                    Log.i(classTag(), "previous message list ${state.value.messages}")
-//
-//                    val newList = state.value.messages.toMutableList().apply {
-//                        add(0, messageDto.toMessage())
-//                    }
-//                    _state.value = _state.value.copy(
-//                        messages = newList
-//                    )
-//                    Log.i(classTag(), "new message list ${state.value.messages}")
-                    state = state.copy(
-                        messages = mutableListOf(messageDto.toMessage()) + state.messages // prepend new message
-                    )
+                .collect { message ->
+                    Log.i(classTag(), "got message from flow $message")
+                    val updatedMessages = state.messages.toMutableList()
+                    val existingMessageIndex =
+                        updatedMessages.indexOfFirst { it.messageId == message.messageId }
+
+                    if (existingMessageIndex != -1) {
+                        updatedMessages[existingMessageIndex]
+                    } else {
+                        updatedMessages.add(0, message)
+                    }
+                    state = state.copy(messages = updatedMessages) // prepend new message
                     Log.i(classTag(), "new message list ${state.messages}")
                 }
         }
     }
 
-    fun onEvent(event: ChatScreenEvent){
-        when(event){
+    private fun generateMessage(textContent: String): Message? {
+        if (conversation == null) return null
+        return Message(
+            textContent = textContent,
+            senderId = conversation!!.currentUserId,
+            timeStamp = System.currentTimeMillis(),
+            conversationId = conversation!!.conversationId,
+        )
+    }
+
+    private fun getConversationDetails(chatId: String) {
+        viewModelScope.launch {
+            conversation = chatRepository.getSingleChat(chatId)
+        }
+    }
+
+    fun onEvent(event: ChatScreenEvent) {
+        when (event) {
             is ChatScreenEvent.SendMessage -> {
-                sendMessage(event.message)
+                val message = generateMessage(event.textContent)
+                if (message == null) {
+                    // change stat to error
+                } else {
+                    sendMessage(message)
+                }
             }
+
             is ChatScreenEvent.ObserverMessages -> {
                 observeMessages(event.conversationId)
+            }
+
+            is ChatScreenEvent.GetConversationDetails -> {
+                // later replace it by db call
+                getConversationDetails(event.conversationId)
             }
         }
     }

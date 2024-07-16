@@ -2,7 +2,9 @@ package com.example.chattingApp.domain.repository
 
 import android.content.SharedPreferences
 import android.util.Log
+import com.example.chattingApp.data.remote.SingleChatService
 import com.example.chattingApp.data.remote.UserService
+import com.example.chattingApp.data.remote.dto.UserSummaryDto
 import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.domain.model.UserRelation
 import com.example.chattingApp.domain.model.UserSummary
@@ -193,6 +195,20 @@ class UserServiceRepository @Inject constructor(
         }
         return@withContext userService.observeConnectionRequests(fromUser.userId).map {
             it.toUserProfile()
+        }
+    }
+
+    suspend fun acceptConnectionRequest(fromUser: UserSummary): Int {
+        return withContext(Dispatchers.IO) {
+            val toUser = getUser.value
+            if (toUser == null) {
+                Log.i(tempTag(), "Error in getting userId")
+                return@withContext -1
+            }
+            return@withContext userService.acceptConnectRequestAndCreateChat(
+                toUser.toUserSummaryDto(),
+                fromUser.toUserSummaryDto()
+            )
         }
     }
 

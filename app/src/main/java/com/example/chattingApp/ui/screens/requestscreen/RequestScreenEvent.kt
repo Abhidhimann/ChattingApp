@@ -1,8 +1,11 @@
 package com.example.chattingApp.ui.screens.requestscreen
 
+
+import com.example.chattingApp.domain.model.UserSummary
+
 sealed class RequestScreenEvent {
     data object ObserveRequestUsers : RequestScreenEvent()
-    data class AcceptRequest(val toUserId: String): RequestScreenEvent()
-    data class RejectRequest(val toUserId: String): RequestScreenEvent()
-    data class RequestedUserProfileClicked(val toUserId: String): RequestScreenEvent()
+    data class AcceptRequest(val userSummary: UserSummary): RequestScreenEvent()
+    data class RejectRequest(val userId: String): RequestScreenEvent()
+    data class RequestedUserProfileClicked(val userId: String): RequestScreenEvent()
 }

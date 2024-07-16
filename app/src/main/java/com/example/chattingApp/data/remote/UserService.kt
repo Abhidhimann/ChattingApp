@@ -14,11 +14,11 @@ interface UserService {
     suspend fun updateUserOnlineStatus(userId: String, value: Boolean): Int
     suspend fun sendConnectionRequest(toUserId: String, fromUserId: String): Int
     suspend fun removeConnectRequest(toUserId: String, fromUserId: String): Int
-    suspend fun acceptConnectRequest(toUserId: String, fromUserId: String): Int
     suspend fun observeNonConnectedUsers(fromUserId: String, friendsIdList: List<String>): Flow<UserProfileDto>
     suspend fun getUserProfileDetails(userId: String): UserProfileDto?
     suspend fun getUserFriends(userId: String): List<UserProfileDto>
     suspend fun getUserIncomingConnectRequests(userId: String): List<UserProfileDto>
     suspend fun getUserOutgoingConnectRequests(userId: String): List<UserProfileDto>
     suspend fun observeConnectionRequests(userId: String): Flow<UserProfileDto>
+    suspend fun acceptConnectRequestAndCreateChat(toUser: UserSummaryDto, fromUser: UserSummaryDto): Int
 }

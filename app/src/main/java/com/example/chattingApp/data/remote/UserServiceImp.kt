@@ -1,6 +1,7 @@
 package com.example.chattingApp.data.remote
 
 import android.util.Log
+import com.example.chattingApp.data.remote.dto.SingleChatDto
 import com.example.chattingApp.data.remote.dto.UserProfileDto
 import com.example.chattingApp.data.remote.dto.UserSummaryDto
 import com.example.chattingApp.utils.classTag
@@ -15,7 +16,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
@@ -26,7 +27,7 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
         val userDto = UserProfileDto()
         try {
             val docRef = db.collection("users_details").add(userDto).await()
-            docRef.update("user_id", docRef.id)
+            docRef.update("user_id", docRef.id).await()
             Log.i(classTag(), "user created with id ${docRef.id}")
             return Result.success(docRef.id)
         } catch (e: Exception) {
@@ -57,8 +58,7 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
 
     override suspend fun updateUserOnlineStatus(userId: String, value: Boolean): Int {
         try {
-            db.collection("users_details").document(userId).update("ready_to_chat", value)
-                .await()
+            db.collection("users_details").document(userId).update("ready_to_chat", value).await()
             return 1
         } catch (e: Exception) {
             Log.i(classTag(), "error in adding message $e")
@@ -113,13 +113,6 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
             Log.i(tempTag(), "Transaction successfully committed")
         }.await()
         return result
-    }
-
-    override suspend fun acceptConnectRequest(
-        toUserId: String,
-        fromUserId: String
-    ): Int {
-        return 1
     }
 
     override suspend fun observeNonConnectedUsers(
@@ -257,14 +250,16 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
                 }
 
                 if (snapshots != null && !snapshots.isEmpty) {
-                    val jobs = snapshots.documentChanges.map { documentChange ->
-                        async(Dispatchers.IO) {
-                            val requestUserId = documentChange.document.id
-                            val userProfile = getUserProfileDetails(requestUserId)
-                            userProfile?.let { trySend(it).isSuccess }
+                    launch(Dispatchers.IO) {
+                        val jobs = snapshots.documentChanges.map { documentChange ->
+                            async {
+                                val requestUserId = documentChange.document.id
+                                val userProfile = getUserProfileDetails(requestUserId)
+                                userProfile?.let { trySend(it).isSuccess }
+                            }
                         }
+                        jobs.awaitAll()
                     }
-                    runBlocking { jobs.awaitAll() }
                 } else {
                     Log.d(classTag(), "No users found ${snapshots?.isEmpty}")
                 }
@@ -272,4 +267,58 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
             awaitClose { listenerRegistration.remove() }
         }
 
+    override suspend fun acceptConnectRequestAndCreateChat(
+        toUser: UserSummaryDto,
+        fromUser: UserSummaryDto
+    ): Int {
+        return withContext(Dispatchers.IO) {
+            try {
+                val toUserIncomingRequestRef = db.collection("users_details")
+                    .document(toUser.userId)
+                    .collection("incoming_requests")
+                    .document(fromUser.userId)
+
+                val fromUserOutgoingRequestRef = db.collection("users_details")
+                    .document(fromUser.userId)
+                    .collection("outgoing_requests")
+                    .document(toUser.userId)
+
+                val toUserFriendRef = db.collection("users_details")
+                    .document(toUser.userId)
+                    .collection("friends")
+                    .document(fromUser.userId)
+
+                val fromUserFriendRef = db.collection("users_details")
+                    .document(fromUser.userId)
+                    .collection("friends")
+                    .document(toUser.userId)
+
+                val singleChatRef = db.collection("singleChat").document()
+
+                val result = db.runTransaction { transaction ->
+                    transaction.delete(toUserIncomingRequestRef)
+                    transaction.delete(fromUserOutgoingRequestRef)
+                    transaction.set(toUserFriendRef, mapOf("userId" to fromUser.userId))
+                    transaction.set(fromUserFriendRef, mapOf("userId" to toUser.userId))
+
+                    val singleChatDto = SingleChatDto(
+                        chatId = singleChatRef.id,
+                        originator = fromUser,
+                        recipient = toUser,
+                        participantIds = listOf(toUser.userId, fromUser.userId)
+                    )
+
+                    transaction.set(singleChatRef, singleChatDto)
+                    transaction.update(singleChatRef, "chatId", singleChatRef.id)
+
+                    1
+                }.await()
+
+                return@withContext result
+            } catch (e: Exception) {
+                Log.e(classTag(), "Error in acceptConnectRequestAndCreateChat: $e")
+                return@withContext -1
+            }
+        }
+    }
 }

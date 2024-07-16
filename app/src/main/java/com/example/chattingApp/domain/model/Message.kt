@@ -4,34 +4,54 @@ import androidx.compose.runtime.mutableStateListOf
 import com.example.chattingApp.data.remote.dto.MessageDto
 
 data class Message(
-    val messageId: Long,
+    var messageId: String = "",
     val textContent: String,
-    val senderId: Long,
+    val senderId: String,
+    var status: MessageStatus = MessageStatus.INITIAL,
+    var timeStamp: Long,
     val conversationId: String,
-    val timeStamp: String
+    val type: MessageType? = null
 ) {
     fun toMessageDto(): MessageDto {
-        return MessageDto( this.messageId, this.textContent, this.senderId, this.conversationId, this.timeStamp)
+        return MessageDto(
+            messageId = messageId,
+            textContent = textContent,
+            senderId = senderId,
+            status = status.name,
+            conversationId = conversationId,
+            timeStamp = timeStamp
+        )
     }
 }
 
-val messageList = mutableStateListOf<Message>(
-    Message(12,"hi", 12, "", ""),
-    Message(12,"hi how are you", 12, "", ""),
-    Message(12,"I'm good lets see", 13, "", ""),
-    Message(12,"wow ", 12, "", ""),
-    Message(12,"yes", 13, "", ""),
-    Message(12,"yeahh", 12, "", ""),
-    Message(12,"hi", 12, "", ""),
-    Message(12,"hi how are you", 12, "", ""),
-    Message(12,"I'm good lets see", 13, "", ""),
-    Message(12,"wow ", 12, "", ""),
-    Message(12,"yes", 13, "", ""),
-    Message(12,"yeahh", 12, "", ""),
-    Message(12,"hi", 12, "", ""),
-    Message(12,"hi how are you", 12, "", ""),
-    Message(12,"I'm good lets see", 13, "", ""),
-    Message(12,"wow ", 12, "", ""),
-    Message(12,"yes", 13, "", ""),
-    Message(12,"yeahh", 12, "", ""),
+val tempMessageList = mutableStateListOf<Message>(
+    Message(
+        messageId = "",
+        textContent = "How are you",
+        senderId = "",
+        status = MessageStatus.INITIAL,
+        timeStamp = 0,
+        conversationId = "",
+        type = MessageType.OUTGOING
+    ),
+    Message(
+        messageId = "",
+        textContent = "Good",
+        senderId = "",
+        status = MessageStatus.INITIAL,
+        timeStamp = 0,
+        conversationId = "",
+        type = MessageType.INCOMING
+    )
 )
+enum class MessageStatus {
+    INITIAL,
+    SENT,
+    UNREAD,
+    READ,
+}
+
+enum class MessageType {
+    INCOMING,
+    OUTGOING
+}

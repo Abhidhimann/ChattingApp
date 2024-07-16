@@ -28,13 +28,18 @@ data class UserProfileDto(
     var online: Boolean = false,
 ) {
     fun toUserProfile(): UserProfile {
-        val gender = when (gender) {
-            UserGender.MALE.value -> UserGender.MALE
-            UserGender.FEMALE.value -> UserGender.FEMALE
-            UserGender.OTHERS.value -> UserGender.OTHERS
-            else -> {
-                UserGender.OTHERS
-            }
+//        val gender = when (gender) {
+//            UserGender.MALE.value -> UserGender.MALE
+//            UserGender.FEMALE.value -> UserGender.FEMALE
+//            UserGender.OTHERS.value -> UserGender.OTHERS
+//            else -> {
+//                UserGender.OTHERS
+//            }
+//        }
+        val gender = try {
+            UserGender.valueOf(gender)
+        } catch (e: Exception){
+            UserGender.OTHERS
         }
         return UserProfile(
             name = name,
