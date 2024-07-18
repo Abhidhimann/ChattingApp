@@ -37,6 +37,7 @@ class ChatListViewModel @Inject constructor(
 
     private fun observerConversations() {
         viewModelScope.launch {
+            // todo later replace it by pns frm network and db observation
             repository.observerConversations()
                 .catch { e ->
                     Log.e(classTag(), "Error observing conversation", e)

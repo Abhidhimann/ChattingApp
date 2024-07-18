@@ -1,5 +1,6 @@
 package com.example.chattingApp.viewModel
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +38,11 @@ class EditProfileViewModel @Inject constructor(
                 updateProfileDetails(event.userProfile)
             }
 
+            is EditProfileScreenEvent.UpdateUserPic -> {
+                Log.i(tempTag(), "new user pic is ${event.imageUri}")
+                uploadAndUpdateUserPic(event.imageUri)
+            }
+
             else -> Unit
         }
     }
@@ -54,6 +60,17 @@ class EditProfileViewModel @Inject constructor(
             Log.i(tempTag(), "updating user start")
             val result = repository.updateUserProfile(userProfile)
             state = state.copy(updatingResult = result == 1)
+        }
+    }
+
+    private fun uploadAndUpdateUserPic(imageUri: Uri) {
+        viewModelScope.launch {
+            val result = repository.uploadUserPic(imageUri)
+                ?: // show error
+                return@launch
+            val updatedUserProfile = state.userProfile
+            updatedUserProfile?.profileImageUrl = result
+            state = state.copy(userProfile = updatedUserProfile)
         }
     }
 }

@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.firebase.messaging.ktx)
+    implementation(libs.firebase.storage.ktx)
     testImplementation(libs.junit)
     implementation("androidx.work:work-runtime-ktx:2.7.1")
 

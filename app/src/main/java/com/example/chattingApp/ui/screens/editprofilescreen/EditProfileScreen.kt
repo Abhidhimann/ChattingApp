@@ -36,6 +36,7 @@ import com.example.chattingApp.ui.BottomNavItem
 import com.example.chattingApp.ui.screens.profilescreen.ProfilePicture
 import com.example.chattingApp.ui.screens.profilescreen.SimpleScreenAppBar
 import com.example.chattingApp.utils.ToastUtil
+import com.example.chattingApp.utils.rememberImagePickerLauncher
 import com.example.chattingApp.viewModel.EditProfileViewModel
 
 
@@ -126,6 +127,12 @@ fun EditProfileScreenSurface(
     LaunchedEffect(userProfile) {
         updateUserProfile = userProfile
     }
+
+    val imagePickerLauncher = rememberImagePickerLauncher { uri ->
+        uri?.let {
+            onEvent(EditProfileScreenEvent.UpdateUserPic(it))
+        }
+    }
     Column(
         modifier = modifier
             .padding(start = 8.dp, end = 8.dp)
@@ -137,7 +144,10 @@ fun EditProfileScreenSurface(
             updateUserProfile?.profileImageUrl, modifier = Modifier
                 .padding(4.dp)
                 .size(240.dp)
-                .padding(4.dp),
+                .padding(4.dp)
+                .clickable {
+                    imagePickerLauncher.launch("image/*")
+                },
             elevation = CardDefaults.elevatedCardElevation(0.dp),
             shapes = CircleShape,
             border = BorderStroke(
@@ -150,7 +160,8 @@ fun EditProfileScreenSurface(
         OutlinedTextField(
             value = updateUserProfile?.name ?: "",
             onValueChange = {
-                if (it.length < maxNameLength) updateUserProfile = updateUserProfile?.copy(name = it)
+                if (it.length < maxNameLength) updateUserProfile =
+                    updateUserProfile?.copy(name = it)
             },
             singleLine = true,
             label = { Text("Name") },

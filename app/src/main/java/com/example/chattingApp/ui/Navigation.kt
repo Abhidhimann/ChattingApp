@@ -12,10 +12,11 @@ import com.example.chattingApp.ui.screens.discoverscreen.DiscoverPeopleScreenRoo
 import com.example.chattingApp.ui.screens.editprofilescreen.EditProfileScreenRoot
 import com.example.chattingApp.ui.screens.profilescreen.ProfileScreenRoot
 import com.example.chattingApp.ui.screens.requestscreen.RequestScreenRoot
+import com.example.chattingApp.ui.screens.signin.SingInScreenRoot
 
 @Composable
 fun NavigationHost(navController: NavHostController) {
-    NavHost(navController, startDestination = BottomNavItem.CHAT.route) {
+    NavHost(navController, startDestination = "signInScreen") {
         composable(route = BottomNavItem.CHAT.route) { ChatListScreenRoot(navController = navController) }
         composable(route = BottomNavItem.CONNECT.route) { DiscoverPeopleScreenRoot(navController) }
         composable(route = BottomNavItem.REQUEST.route) { RequestScreenRoot(navController) }
@@ -29,5 +30,6 @@ fun NavigationHost(navController: NavHostController) {
             ChatScreenRoot(chatId, navController)
         }
         composable(route = "editProfileScreen") { EditProfileScreenRoot(navController) }
+        composable(route = "signInScreen") { SingInScreenRoot() }
     }
 }

@@ -1,7 +1,10 @@
 package com.example.chattingApp.data.repository
 
 import android.content.SharedPreferences
+import android.net.Uri
 import android.util.Log
+import androidx.core.net.toUri
+import com.example.chattingApp.data.remote.ImageService
 import com.example.chattingApp.data.remote.UserService
 import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.domain.model.UserRelation
@@ -19,6 +22,7 @@ import javax.inject.Singleton
 @Singleton
 class UserServiceRepositoryImpl @Inject constructor(
     private val userService: UserService,
+    private val imageService: ImageService,
     private val appPrefs: SharedPreferences
 ) {
     // todo later change it to db
@@ -215,6 +219,12 @@ class UserServiceRepositoryImpl @Inject constructor(
                 toUser.toUserSummaryDto(),
                 fromUser.toUserSummaryDto()
             )
+        }
+    }
+
+    suspend fun uploadUserPic(imageUri: Uri): String? {
+        return withContext(Dispatchers.IO) {
+            return@withContext imageService.uploadImageToFirebaseStorage("userPictures", imageUri)
         }
     }
 
