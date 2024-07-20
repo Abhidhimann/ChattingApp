@@ -26,6 +26,9 @@ data class UserProfileResponse(
     @get:PropertyName("online")
     @set:PropertyName("online")
     var online: Boolean = false,
+    @get:PropertyName("email")
+    @set:PropertyName("email")
+    var email: String = "",
 ) {
     fun toUserProfile(): UserProfile {
         val gender = when (gender) {
@@ -44,6 +47,7 @@ data class UserProfileResponse(
             aboutMe = aboutMe,
             interests = interests,
             online = online,
+            email = email
         )
     }
 }

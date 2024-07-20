@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -13,53 +12,99 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.chattingApp.R
+import com.example.chattingApp.ui.BottomNavItem
+import com.example.chattingApp.utils.SimpleLoadingScreen
+import com.example.chattingApp.utils.SpannableString
+import com.example.chattingApp.utils.ToastUtil
+import com.example.chattingApp.utils.Validation.validateEmail
+import com.example.chattingApp.viewModel.SignInViewModel
 
 @Composable
-fun SingInScreenRoot() {
+fun SignInScreenRoot(navController: NavController) {
+    val viewModel: SignInViewModel = hiltViewModel<SignInViewModel>()
+    SignInScreen(viewModel.state) { event ->
+        when (event) {
+            is SignInScreenEvent.RegisterUser -> {
+                navController.navigate("signUpScreen")
+            }
 
-    SingInScreen(SingInScreenState()) {
+            is SignInScreenEvent.ForgotPassword -> {
+                navController.navigate("forgotPasswordScreen")
+            }
 
+            is SignInScreenEvent.AfterSignIn -> {
+                navController.navigate(BottomNavItem.CHAT_LIST.route)
+            }
+
+            else -> viewModel.onEvent(event)
+        }
     }
 }
 
 @Composable
-fun SingInScreen(state: SingInScreenState, onEvent: (SingInScreenEvent) -> Unit) {
+fun SignInScreen(state: SignInScreenState, onEvent: (SignInScreenEvent) -> Unit) {
     Scaffold(
         topBar = {},
         modifier = Modifier.fillMaxSize(),
     ) {
-        SingInScreenContent(modifier = Modifier.padding(it), onEvent)
+        SimpleLoadingScreen(isLoading = state.isLoading) {
+            SignInScreenContent(
+                state = state,
+                modifier = Modifier.padding(it),
+                onEvent
+            )
+        }
     }
 }
 
 @Composable
-fun SingInScreenContent(modifier: Modifier, onEvent: (SingInScreenEvent) -> Unit) {
+fun SignInScreenContent(
+    state: SignInScreenState,
+    modifier: Modifier,
+    onEvent: (SignInScreenEvent) -> Unit
+) {
+    var email by remember { mutableStateOf("") }
+    var emailError by remember { mutableStateOf(false) }
+    var password by remember { mutableStateOf("") }
+    var showPassword by remember { mutableStateOf(value = false) }
+
     Column(
         modifier = modifier
             .padding(start = 8.dp, end = 8.dp)
@@ -83,8 +128,10 @@ fun SingInScreenContent(modifier: Modifier, onEvent: (SingInScreenEvent) -> Unit
                 .padding(8.dp)
         )
         OutlinedTextField(
-            value = "",
+            value = email,
             onValueChange = {
+                email = it
+                emailError = validateEmail(it)
             },
             singleLine = true,
             label = { Text("Email") },
@@ -93,25 +140,78 @@ fun SingInScreenContent(modifier: Modifier, onEvent: (SingInScreenEvent) -> Unit
                 .fillMaxWidth()
                 .padding(8.dp)  // can add supporting text also
         )
-
-
+        if (emailError) {
+            Text(
+                text = "Email id is incorrect.",
+                textAlign = TextAlign.Start,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, end = 8.dp)
+            )
+        }
         OutlinedTextField(
-            value = "",
-            onValueChange = {},
+            value = password,
+            onValueChange = {
+                password = it
+            },
             label = { Text("Password") },
-            maxLines = 3,
+            singleLine = true,
             leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "email") },
+            visualTransformation = if (showPassword) {
+                VisualTransformation.None
+            } else {
+                PasswordVisualTransformation()
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            trailingIcon = {
+                if (showPassword) {
+                    IconButton(onClick = { showPassword = false }) {
+                        Icon(
+                            imageVector = Icons.Filled.Visibility,
+                            contentDescription = "hide_password"
+                        )
+                    }
+                } else {
+                    IconButton(
+                        onClick = { showPassword = true }) {
+                        Icon(
+                            imageVector = Icons.Filled.VisibilityOff,
+                            contentDescription = "hide_password"
+                        )
+                    }
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp)
+                .padding(start = 8.dp, top = 8.dp, end = 8.dp, bottom = 0.dp)
         )
+        if (state.isSingInSuccess == false) {
+            Text(
+                text = state.errorMessage,
+                textAlign = TextAlign.Start,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, end = 8.dp, top = 2.dp)
+            )
+        } else if (state.isSingInSuccess == true) {
+            ToastUtil.shortToast(LocalContext.current.applicationContext, "Login Successful")
+            onEvent(SignInScreenEvent.AfterSignIn)
+        }
 
-        Spacer(modifier = Modifier.height(20.dp))
-
+        TextButton(
+            onClick = { onEvent(SignInScreenEvent.ForgotPassword) },
+            modifier = Modifier.align(Alignment.End)
+        ) {
+            Text(text = "Forgot Password?")
+        }
+        Spacer(modifier = Modifier.height(10.dp))
         Button(
             onClick = {
-                onEvent(SingInScreenEvent.SignInByEmail)
+                onEvent(SignInScreenEvent.SignInByEmailAndPassword(email, password))
             },
+            enabled = email.isNotBlank() && password.isNotBlank() && !emailError,
             modifier = Modifier
                 .wrapContentHeight()
                 .fillMaxWidth(0.6f),
@@ -129,12 +229,15 @@ fun SingInScreenContent(modifier: Modifier, onEvent: (SingInScreenEvent) -> Unit
             )
         }
         Spacer(modifier = Modifier.weight(1f))
-        FooterComponent(modifier = Modifier.padding(bottom = 10.dp), onEvent)
+        FooterComponent(
+            modifier = Modifier.padding(bottom = 10.dp),
+            onEvent
+        )
     }
 }
 
 @Composable
-fun FooterComponent(modifier: Modifier, onEvent: (SingInScreenEvent) -> Unit) {
+fun FooterComponent(modifier: Modifier, onEvent: (SignInScreenEvent) -> Unit) {
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -164,7 +267,7 @@ fun FooterComponent(modifier: Modifier, onEvent: (SingInScreenEvent) -> Unit) {
         Spacer(modifier = Modifier.height(5.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
             Button(
-                onClick = { onEvent(SingInScreenEvent.GoogleSso) },
+                onClick = { onEvent(SignInScreenEvent.GoogleSso) },
                 colors = ButtonDefaults.buttonColors(
                     containerColor =
                     MaterialTheme.colorScheme.tertiaryContainer
@@ -178,51 +281,20 @@ fun FooterComponent(modifier: Modifier, onEvent: (SingInScreenEvent) -> Unit) {
             }
         }
         Spacer(modifier = Modifier.height(10.dp))
-        SpannableString("Don't have an account? ", "Register") {
-            onEvent(SingInScreenEvent.RegisterUser)
-        }
-    }
-}
-
-
-@Composable
-fun SpannableString(
-    textQuery: String,
-    textClickable: String,
-    textQueryStyle: SpanStyle =
-        SpanStyle(
-            fontSize = 15.sp,
-            color = MaterialTheme.colorScheme.onSurface
-        ),
-    textClickableStyle: SpanStyle = SpanStyle(fontSize = 15.sp, color = Color.Blue),
-    onClick: () -> Unit
-) {
-    val annotatedString = buildAnnotatedString {
-        withStyle(
-            style = textQueryStyle
+        SpannableString(
+            "Don't have an account? ",
+            "Register"
         ) {
-            append(textQuery)
-        }
-        withStyle(style = textClickableStyle) {
-            pushStringAnnotation(tag = textClickable, annotation = textClickable)
-            append(textClickable)
+            onEvent(SignInScreenEvent.RegisterUser)
         }
     }
-
-    ClickableText(text = annotatedString, onClick = {
-        annotatedString.getStringAnnotations(it, it)
-            .firstOrNull()?.also { annotation ->
-                if (annotation.item == textClickable) {
-                    onClick.invoke()
-                }
-            }
-    })
 }
+
 
 @Preview
 @Composable
-fun SingInScreenPreview() {
-    SingInScreen(SingInScreenState()) {
+fun SignInScreenPreview() {
+    SignInScreen(SignInScreenState()) {
 
     }
 }

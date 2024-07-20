@@ -65,6 +65,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.firebase.messaging.ktx)
     implementation(libs.firebase.storage.ktx)
+    implementation(libs.firebase.auth.ktx)
     testImplementation(libs.junit)
     implementation("androidx.work:work-runtime-ktx:2.7.1")
 
@@ -99,6 +100,9 @@ dependencies {
 
     // shared preferences
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // extended icons
+    implementation("androidx.compose.material:material-icons-extended")
 
 //    // shimmer
 //    implementation("com.valentinilk.shimmer:compose-shimmer:1.3.0")

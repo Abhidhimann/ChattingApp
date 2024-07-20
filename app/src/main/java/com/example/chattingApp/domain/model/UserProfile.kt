@@ -11,6 +11,7 @@ data class UserProfile(
     var aboutMe: String,
     var interests: String,
     var online: Boolean,
+    var email: String,
     var incomingRequests: List<UserSummary> = emptyList(),
     var outgoingRequests: List<UserSummary> = emptyList(),
     var friends: List<UserSummary> = emptyList(),
@@ -24,7 +25,8 @@ data class UserProfile(
             gender = gender.value,
             aboutMe = aboutMe,
             interests = interests,
-            online = online
+            online = online,
+            email = email
         )
     }
 
@@ -52,5 +54,6 @@ val tempUserProfile = UserProfile(
     gender = UserGender.MALE,
     aboutMe = "This is nothing about me, This is nothing about me, This is nothing about me, This is nothing about me",
     interests = "No interests",
-    online = false
+    online = false,
+    email = ""
 )

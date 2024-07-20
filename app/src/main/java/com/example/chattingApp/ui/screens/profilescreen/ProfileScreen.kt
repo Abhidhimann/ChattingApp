@@ -45,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -62,6 +63,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.chattingApp.R
 import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.domain.model.tempUserProfile
+import com.example.chattingApp.utils.ToastUtil
 import com.example.chattingApp.viewModel.ProfileScreenViewModel
 
 @Composable
@@ -72,6 +74,7 @@ fun ProfileScreenRoot(userId: String?, navController: NavController) {
             is ProfileScreenEvent.EditProfile -> {
                 navController.navigate("editProfileScreen")
             }
+
             else -> {
                 viewModel.onEvent(event)
             }
@@ -100,6 +103,12 @@ fun ProfileScreen(
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
+    }
+
+    if (state.isLogoutSuccess == false) {
+        ToastUtil.shortToast(LocalContext.current.applicationContext, "Some error occurred. Please try again later.")
+    } else if (state.isLogoutSuccess == true){
+        ToastUtil.shortToast(LocalContext.current.applicationContext, "Sign out successfully")
     }
 
     val userProfile = state.userProfile
@@ -160,6 +169,13 @@ fun UserProfileMenuActions(onEvent: (ProfileScreenEvent) -> Unit) {
                 text = { Text("Edit Profile") },
                 onClick = {
                     onEvent(ProfileScreenEvent.EditProfile(tempUserProfile))
+                    menuExpanded = false
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Log out") },
+                onClick = {
+                    onEvent(ProfileScreenEvent.LogOut)
                     menuExpanded = false
                 }
             )

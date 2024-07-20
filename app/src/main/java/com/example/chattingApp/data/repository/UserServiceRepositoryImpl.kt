@@ -4,11 +4,13 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
 import androidx.core.net.toUri
+import com.example.chattingApp.data.remote.AuthService
 import com.example.chattingApp.data.remote.ImageService
 import com.example.chattingApp.data.remote.UserService
 import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.domain.model.UserRelation
 import com.example.chattingApp.domain.model.UserSummary
+import com.example.chattingApp.utils.ResultResponse
 import com.example.chattingApp.utils.tempTag
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -23,6 +25,7 @@ import javax.inject.Singleton
 class UserServiceRepositoryImpl @Inject constructor(
     private val userService: UserService,
     private val imageService: ImageService,
+    private val authService: AuthService,
     private val appPrefs: SharedPreferences
 ) {
     // todo later change it to db
@@ -42,24 +45,24 @@ class UserServiceRepositoryImpl @Inject constructor(
         }.apply()
     }
 
-    suspend fun createUser() {
-        withContext(Dispatchers.IO) {
-            val result = userService.createUser()
-            Log.i(tempTag(), "user created with $result}")
-            if (result.isSuccess && result.getOrNull() != null) {
-                Log.i(tempTag(), "Yeah user create with ${result.getOrNull()}")
-                saveUserInPref(
-                    UserSummary(
-                        name = "",
-                        userId = result.getOrNull().toString(),
-                        profileImageUrl = ""
-                    )
-                )
-            } else {
-                Log.i(tempTag(), "fail user create with ${result.exceptionOrNull()}")
-            }
-        }
-    }
+//    suspend fun createUser() {
+//        withContext(Dispatchers.IO) {
+//            val result = userService.createUser()
+//            Log.i(tempTag(), "user created with $result}")
+//            if (result.isSuccess && result.getOrNull() != null) {
+//                Log.i(tempTag(), "Yeah user create with ${result.getOrNull()}")
+//                saveUserInPref(
+//                    UserSummary(
+//                        name = "",
+//                        userId = result.getOrNull().toString(),
+//                        profileImageUrl = ""
+//                    )
+//                )
+//            } else {
+//                Log.i(tempTag(), "fail user create with ${result.exceptionOrNull()}")
+//            }
+//        }
+//    }
 
     suspend fun observeNonConnectedUsers() = withContext(Dispatchers.IO) {
         val fromUser = getUser.value
@@ -228,8 +231,14 @@ class UserServiceRepositoryImpl @Inject constructor(
         }
     }
 
+    suspend fun logOut(): ResultResponse<Unit> {
+        return withContext(Dispatchers.IO){
+            authService.logOut()
+        }
+    }
+
     suspend fun temp() {
-        userService.createUser()
+//        userService.createUser()
 //        appPrefs.edit().remove("user_id").apply()
     }
 }

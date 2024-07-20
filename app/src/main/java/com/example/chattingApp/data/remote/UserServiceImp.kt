@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.chattingApp.data.remote.dto.SingleChatResponse
 import com.example.chattingApp.data.remote.dto.UserProfileResponse
 import com.example.chattingApp.data.remote.dto.UserSummaryResponse
+import com.example.chattingApp.utils.ResultResponse
 import com.example.chattingApp.utils.classTag
 import com.example.chattingApp.utils.tempTag
 import com.google.firebase.firestore.DocumentReference
@@ -23,16 +24,13 @@ import kotlinx.coroutines.withContext
 class UserServiceImp(private val db: FirebaseFirestore) : UserService {
 
     // todo change user then it will be o(1) instead of o(n) in
-    override suspend fun createUser(): Result<Any> {
-        val userDto = UserProfileResponse()
+    override suspend fun createUser(userDto: UserProfileResponse): ResultResponse<UserProfileResponse> {
         try {
-            val docRef = db.collection("users_details").add(userDto).await()
-            docRef.update("user_id", docRef.id).await()
-            Log.i(classTag(), "user created with id ${docRef.id}")
-            return Result.success(docRef.id)
+            db.collection("users_details").document(userDto.userId).set(userDto).await()
+            return ResultResponse.Success(userDto)
         } catch (e: Exception) {
-            Log.i(classTag(), "error in adding message $e")
-            return Result.failure(exception = e)
+            Log.i(classTag(), "error in creating user $e")
+            return ResultResponse.Failed(e)
         }
     }
 

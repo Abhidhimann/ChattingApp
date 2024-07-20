@@ -3,6 +3,8 @@ package com.example.chattingApp.di
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
+import com.example.chattingApp.data.remote.AuthService
+import com.example.chattingApp.data.remote.AuthServiceImpl
 import com.example.chattingApp.data.remote.ChatSocketService
 import com.example.chattingApp.data.remote.ChatSocketServiceImp
 import com.example.chattingApp.data.remote.ImageService
@@ -11,7 +13,9 @@ import com.example.chattingApp.data.remote.SingleChatService
 import com.example.chattingApp.data.remote.SingleChatServiceImp
 import com.example.chattingApp.data.remote.UserService
 import com.example.chattingApp.data.remote.UserServiceImp
+import com.example.chattingApp.data.repository.AuthRepositoryImpl
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
@@ -41,6 +45,12 @@ class AppModules {
 
     @Provides
     @Singleton
+    fun providesFirebaseAuth(): FirebaseAuth {
+        return FirebaseAuth.getInstance()
+    }
+
+    @Provides
+    @Singleton
     fun providesChatSocketService(firebaseDatabase: FirebaseFirestore): ChatSocketService {
         return ChatSocketServiceImp(firebaseDatabase)
     }
@@ -49,6 +59,12 @@ class AppModules {
     @Singleton
     fun providesUserService(firebaseDatabase: FirebaseFirestore): UserService {
         return UserServiceImp(firebaseDatabase)
+    }
+
+    @Provides
+    @Singleton
+    fun providesAuthService(auth: FirebaseAuth): AuthService {
+        return AuthServiceImpl(auth)
     }
 
     @Provides

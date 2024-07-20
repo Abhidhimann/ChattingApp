@@ -33,7 +33,7 @@ enum class BottomNavItem(
     val unselectedIcon: ImageVector,
     val title: String
 ) {
-    CHAT("chat", Icons.Default.Email, Icons.Default.Email, "Chat"),
+    CHAT_LIST("chatList", Icons.Default.Email, Icons.Default.Email, "Chat"),
     CONNECT("connect", Icons.Default.Search, Icons.Default.Search, "Connect"),
     REQUEST("requests", Icons.Default.Person, Icons.Default.Person, "Requests"),
     PROFILE("profile/{userId}", Icons.Default.Person, Icons.Default.Person, "Profile");

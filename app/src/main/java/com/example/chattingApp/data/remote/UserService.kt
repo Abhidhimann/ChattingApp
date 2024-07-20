@@ -2,11 +2,12 @@ package com.example.chattingApp.data.remote
 
 import com.example.chattingApp.data.remote.dto.UserProfileResponse
 import com.example.chattingApp.data.remote.dto.UserSummaryResponse
+import com.example.chattingApp.utils.ResultResponse
 import com.google.firebase.firestore.DocumentReference
 import kotlinx.coroutines.flow.Flow
 
 interface UserService {
-    suspend fun createUser(): Result<Any>
+    suspend fun createUser(userDto: UserProfileResponse): ResultResponse<UserProfileResponse>
     suspend fun getUserProfileDocumentReference(userId: String): DocumentReference?
     suspend fun updateUserProfile(userProfile: UserProfileResponse): Int
     suspend fun updateUserOnlineStatus(userId: String, value: Boolean): Int

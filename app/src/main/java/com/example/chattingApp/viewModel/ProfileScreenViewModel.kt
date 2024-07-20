@@ -9,6 +9,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.chattingApp.data.repository.UserServiceRepositoryImpl
 import com.example.chattingApp.ui.screens.profilescreen.ProfileScreenEvent
 import com.example.chattingApp.ui.screens.profilescreen.ProfileScreenState
+import com.example.chattingApp.utils.ResultResponse
+import com.example.chattingApp.utils.classTag
 import com.example.chattingApp.utils.tempTag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -35,6 +37,10 @@ class ProfileScreenViewModel @Inject constructor(
                 }
             }
 
+            is ProfileScreenEvent.LogOut -> {
+                logOut()
+            }
+
             else -> {}
         }
     }
@@ -48,6 +54,18 @@ class ProfileScreenViewModel @Inject constructor(
         val userProfile = repository.getSelfProfileDetails()
         Log.i(tempTag(), "got user profile is $userProfile")
         state = state.copy(userProfile = userProfile)
+    }
+
+    private fun logOut() = viewModelScope.launch {
+        when(val result = repository.logOut()){
+            is ResultResponse.Success -> {
+                state = state.copy(isLogoutSuccess = true)
+            }
+            is ResultResponse.Failed -> {
+                Log.i(classTag(), "logout failed with ${result.exception}")
+                state = state.copy(isLogoutSuccess = false, errorMessage = "Some error occurred. Please try again later.")
+            }
+        }
     }
 
 }

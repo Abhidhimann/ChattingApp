@@ -28,7 +28,7 @@ class DiscoverViewModel @Inject constructor(
 
     init {
         isUserProfileExists()
-        createUserIfNotExists()
+//        createUserIfNotExists()
     }
 
     fun onEvent(event: DiscoverScreenEvent) {
@@ -96,12 +96,12 @@ class DiscoverViewModel @Inject constructor(
         }
     }
 
-    fun createUserIfNotExists() = viewModelScope.launch {
-        if (!repository.isUserIdExists()) {
-            Log.i(tempTag(), "creating user")
-            repository.createUser()
-        }
-    }
+//    fun createUserIfNotExists() = viewModelScope.launch {
+//        if (!repository.isUserIdExists()) {
+//            Log.i(tempTag(), "creating user")
+//            repository.createUser()
+//        }
+//    }
 
     private fun isUserProfileExists() = viewModelScope.launch {
         val result = repository.isUserProfileExists()
