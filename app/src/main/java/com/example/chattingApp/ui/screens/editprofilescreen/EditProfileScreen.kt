@@ -1,6 +1,7 @@
 package com.example.chattingApp.ui.screens.editprofilescreen
 
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -78,10 +79,14 @@ fun EditProfileScreenContent(
     val userProfile = state.userProfile
     val context = LocalContext.current.applicationContext
 
+    LaunchedEffect(state) {
+        Log.d("ABHITAG", "user profile1 is ${state.userProfile}")
+    }
+
     if (state.updatingResult == true) {
         LaunchedEffect(state.updatingResult) {
             ToastUtil.shortToast(context, "Update Successful")
-            onEvent(EditProfileScreenEvent.CancelOrBack)
+//            onEvent(EditProfileScreenEvent.CancelOrBack)
         }
     } else if (state.updatingResult == false) {
         LaunchedEffect(state.updatingResult) {
@@ -125,6 +130,7 @@ fun EditProfileScreenSurface(
         mutableStateOf(userProfile)
     }
     LaunchedEffect(userProfile) {
+        Log.i("ABHITAG", "user profile is $userProfile")
         updateUserProfile = userProfile
     }
 
@@ -141,7 +147,7 @@ fun EditProfileScreenSurface(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         ProfilePicture(
-            updateUserProfile?.profileImageUrl, modifier = Modifier
+            userProfile?.profileImageUrl, modifier = Modifier
                 .padding(4.dp)
                 .size(240.dp)
                 .padding(4.dp)

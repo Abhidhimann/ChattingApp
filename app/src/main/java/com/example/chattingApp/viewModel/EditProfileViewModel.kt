@@ -11,6 +11,8 @@ import com.example.chattingApp.data.repository.UserServiceRepositoryImpl
 import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.ui.screens.editprofilescreen.EditProfileScreenEvent
 import com.example.chattingApp.ui.screens.editprofilescreen.EditProfileScreenState
+import com.example.chattingApp.utils.ResultResponse
+import com.example.chattingApp.utils.classTag
 import com.example.chattingApp.utils.tempTag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -65,12 +67,20 @@ class EditProfileViewModel @Inject constructor(
 
     private fun uploadAndUpdateUserPic(imageUri: Uri) {
         viewModelScope.launch {
-            val result = repository.uploadUserPic(imageUri)
-                ?: // show error
-                return@launch
-            val updatedUserProfile = state.userProfile
-            updatedUserProfile?.profileImageUrl = result
-            state = state.copy(userProfile = updatedUserProfile)
+            when (val result = repository.uploadUserPic(imageUri)) {
+                is ResultResponse.Success -> {
+                    Log.i(classTag(), "Image upload successful ${result.data}")
+                    val updatedUserProfile = state.userProfile
+                    Log.i(classTag(), "previous user $updatedUserProfile")
+                    updatedUserProfile?.profileImageUrl = result.data
+                    Log.i(classTag(), "updated user $updatedUserProfile")
+                    state = state.copy(userProfile = updatedUserProfile, isImageUpdate = true)
+                }
+
+                is ResultResponse.Failed -> {
+                    Log.i(classTag(), "Image upload failed ${result.exception}")
+                }
+            }
         }
     }
 }

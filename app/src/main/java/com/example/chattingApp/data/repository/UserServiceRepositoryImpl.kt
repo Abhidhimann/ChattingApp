@@ -225,7 +225,7 @@ class UserServiceRepositoryImpl @Inject constructor(
         }
     }
 
-    suspend fun uploadUserPic(imageUri: Uri): String? {
+    suspend fun uploadUserPic(imageUri: Uri): ResultResponse<String> {
         return withContext(Dispatchers.IO) {
             return@withContext imageService.uploadImageToFirebaseStorage("userPictures", imageUri)
         }
