@@ -34,6 +34,15 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
         }
     }
 
+    override suspend fun isUserExists(userId: String): Boolean {
+        try {
+            return db.collection("users_details").document(userId).get().await().exists()
+        } catch (e: Exception) {
+            Log.i(classTag(), "error in fetching user $e")
+            return false
+        }
+    }
+
     override suspend fun getUserProfileDocumentReference(userId: String): DocumentReference? {
         try {
             return db.collection("users_details").document(userId)

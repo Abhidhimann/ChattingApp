@@ -30,6 +30,10 @@ class SignInViewModel @Inject constructor(
                 singInByEmailAndPassword(event.email, event.password)
             }
 
+            is SignInScreenEvent.GoogleSso -> {
+                signInWithGoogleSso()
+            }
+
             else -> Unit
         }
     }
@@ -43,14 +47,42 @@ class SignInViewModel @Inject constructor(
             }
 
             is ResultResponse.Failed -> {
-                when(result.exception){
+                when (result.exception) {
                     is SignInException.EmailNotVerifiedException -> {
-                        state = state.copy(isLoading = false, isSingInSuccess = false, errorMessage = "Your email address is not yet verified. Please check your inbox for the verification email.")
+                        state = state.copy(
+                            isLoading = false,
+                            isSingInSuccess = false,
+                            errorMessage = "Your email address is not yet verified. Please check your inbox for the verification email."
+                        )
                     }
+
                     is SignInException.GeneralException -> {
-                        state = state.copy(isLoading = false, isSingInSuccess = false, errorMessage = "Email id or password is incorrect.")
+                        state = state.copy(
+                            isLoading = false,
+                            isSingInSuccess = false,
+                            errorMessage = "Email id or password is incorrect."
+                        )
                     }
                 }
+            }
+        }
+    }
+
+    private fun signInWithGoogleSso() = viewModelScope.launch {
+        state = state.copy(isLoading = true)
+        when (val result = authRepository.signInWithGoogleSso()) {
+            is ResultResponse.Success -> {
+                Log.i(classTag(), "Sign in successful ${result.data}")
+                state = state.copy(isSingInSuccess = true, isLoading = false)
+            }
+
+            is ResultResponse.Failed -> {
+                Log.e(classTag(), "error in google sso ${result.exception}")
+                state = state.copy(
+                    isLoading = false,
+                    isSingInSuccess = false,
+                    errorMessage = "Some error occurred. Please try again later or sign up using email address."
+                )
             }
         }
     }

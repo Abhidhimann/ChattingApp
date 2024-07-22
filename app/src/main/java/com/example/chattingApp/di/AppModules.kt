@@ -3,10 +3,12 @@ package com.example.chattingApp.di
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.credentials.CredentialManager
 import com.example.chattingApp.data.remote.AuthService
 import com.example.chattingApp.data.remote.AuthServiceImpl
 import com.example.chattingApp.data.remote.ChatSocketService
 import com.example.chattingApp.data.remote.ChatSocketServiceImp
+import com.example.chattingApp.data.remote.GoogleAuthClient
 import com.example.chattingApp.data.remote.ImageService
 import com.example.chattingApp.data.remote.ImageServiceImpl
 import com.example.chattingApp.data.remote.SingleChatService
@@ -23,6 +25,7 @@ import com.google.firebase.storage.StorageReference
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -51,6 +54,21 @@ class AppModules {
 
     @Provides
     @Singleton
+    fun provideCredentialManager(@ApplicationContext context: Context): CredentialManager {
+        return CredentialManager.create(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGoogleAuthClient(
+        credentialManager: CredentialManager,
+        @ApplicationContext context: Context
+    ): GoogleAuthClient {
+        return GoogleAuthClient(credentialManager, context)
+    }
+
+    @Provides
+    @Singleton
     fun providesChatSocketService(firebaseDatabase: FirebaseFirestore): ChatSocketService {
         return ChatSocketServiceImp(firebaseDatabase)
     }
@@ -63,8 +81,8 @@ class AppModules {
 
     @Provides
     @Singleton
-    fun providesAuthService(auth: FirebaseAuth): AuthService {
-        return AuthServiceImpl(auth)
+    fun providesAuthService(auth: FirebaseAuth, googleAuthClient: GoogleAuthClient): AuthService {
+        return AuthServiceImpl(auth, googleAuthClient)
     }
 
     @Provides

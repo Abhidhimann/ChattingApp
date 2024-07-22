@@ -8,8 +8,7 @@ import com.example.chattingApp.data.remote.dto.UserProfileResponse
 import com.example.chattingApp.domain.model.UserSummary
 import com.example.chattingApp.domain.repository.AuthRepository
 import com.example.chattingApp.utils.ResultResponse
-import com.example.chattingApp.utils.onFailure
-import com.example.chattingApp.utils.onSuccess
+import com.example.chattingApp.utils.classTag
 import com.example.chattingApp.utils.tempTag
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.Dispatchers
@@ -87,6 +86,61 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun getAuthState(): Flow<Boolean> =
         withContext(Dispatchers.IO) { authService.getAuthState().map { it != null } }
+
+    // todo will refactor it later
+    override suspend fun signInWithGoogleSso(): ResultResponse<Unit> {
+        return withContext(Dispatchers.IO) {
+            when (val authResponse = authService.signInWithGoogleSso()) {
+                is ResultResponse.Success -> {
+                    Log.i(
+                        classTag(),
+                        "user is ${authResponse.data.uid}  ${authResponse.data.displayName} ${authResponse.data.photoUrl}"
+                    )
+
+                    // here refactor
+                    when (val firestoreResponse =
+                        userService.createUser(
+                            UserProfileResponse(
+                                userId = authResponse.data.uid,
+                                name = authResponse.data.displayName ?: "",
+                                email = authResponse.data.email ?: "",
+                                profileImageUrl = (authResponse.data.photoUrl ?: "").toString()
+                            )
+                        )) {
+                        is ResultResponse.Success -> {
+                            saveUserInPref(
+                                UserSummary(
+                                    name = authResponse.data.displayName ?: "",
+                                    userId = authResponse.data.uid,
+                                    profileImageUrl = (authResponse.data.photoUrl ?: "").toString()
+                                )
+                            )
+                            return@withContext ResultResponse.Success(Unit)
+                        }
+
+                        is ResultResponse.Failed -> return@withContext ResultResponse.Failed(
+                            firestoreResponse.exception
+                        )
+                    }
+                }
+
+                is ResultResponse.Failed -> {
+                    return@withContext ResultResponse.Failed(authResponse.exception)
+                }
+            }
+        }
+    }
+
+    suspend fun handleFirebaseSsoUser(firebaseUser: FirebaseUser): ResultResponse<Unit>{
+       return withContext(Dispatchers.IO){
+           if (!userService.isUserExists(firebaseUser.uid)){
+               userService.createUser(UserSummary(
+                   userId = firebaseUser.uid
+                   
+               ))
+           }
+        }
+    }
 
     override suspend fun sendPasswordResetEmail(email: String): ResultResponse<Unit> {
         return withContext(Dispatchers.IO) {

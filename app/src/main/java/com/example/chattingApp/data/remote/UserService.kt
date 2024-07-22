@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface UserService {
     suspend fun createUser(userDto: UserProfileResponse): ResultResponse<UserProfileResponse>
+    suspend fun isUserExists(userId: String): Boolean
     suspend fun getUserProfileDocumentReference(userId: String): DocumentReference?
     suspend fun updateUserProfile(userProfile: UserProfileResponse): Int
     suspend fun updateUserOnlineStatus(userId: String, value: Boolean): Int
