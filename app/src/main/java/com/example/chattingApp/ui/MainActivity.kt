@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.flowWithLifecycle
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.chattingApp.ui.theme.ChattingAppTheme
 import com.example.chattingApp.viewModel.AuthViewModel
@@ -39,24 +40,29 @@ fun ChattingApp() {
     val navController = rememberNavController()
     val bottomNavItems = BottomNavItem.entries.toTypedArray()
     var showBottomNavBar by remember { mutableStateOf(true) }
+    // todo find out main app should have view model or not ( i guess should not)
     val authViewModel: AuthViewModel = hiltViewModel<AuthViewModel>()
 //    val isAuthenticate by authViewModel.isAuthenticate.collectAsState()
+    val startDestination = "signInScreen"
     val isAuthenticate = authViewModel.authState
-    val startDestination = if (isAuthenticate == true) {
-        BottomNavItem.CHAT_LIST.route
-    } else if (isAuthenticate == false) {
-        "signInScreen"
-    } else {
-        "startLoadingScreen"
+    // todo will optimize it
+    if (navController.currentDestination != null && navController.currentDestination?.route != "signInScreen") {
+        val newDes = if (isAuthenticate == true) {
+            BottomNavItem.CHAT_LIST.route
+        } else if (isAuthenticate == null) {
+            "startLoadingScreen"
+        } else {
+            "signInScreen"
+        }
+        navController.navigate(newDes)
     }
 
-//    authViewModel.isAuthenticated.collectAsState().value
-    Log.i("ABHITag", "value is $isAuthenticate")
 
     navController.addOnDestinationChangedListener { _, destination, _ ->
         showBottomNavBar =
             BottomNavItem.entries.toTypedArray().map { it.route }.contains(destination.route)
     }
+    // todo will remove it from here
     Scaffold(
         bottomBar = {
             if (showBottomNavBar) {

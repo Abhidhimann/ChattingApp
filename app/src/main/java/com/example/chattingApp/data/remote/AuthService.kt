@@ -11,7 +11,6 @@ interface AuthService {
     suspend fun signInByEmailAndPassword(email: String, password: String): ResultResponse<FirebaseUser>
     suspend fun signUpWithEmailPassword(email: String, password: String): ResultResponse<FirebaseUser>
     suspend fun signInWithGoogleSso(): ResultResponse<FirebaseUser>
-
     suspend fun signInWithAuthCredentials(authCredential: AuthCredential): ResultResponse<FirebaseUser>
     suspend fun sendPasswordResetEmail(email: String): ResultResponse<Unit>
 }

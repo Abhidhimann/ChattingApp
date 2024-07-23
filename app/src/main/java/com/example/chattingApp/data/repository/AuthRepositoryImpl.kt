@@ -96,32 +96,7 @@ class AuthRepositoryImpl @Inject constructor(
                         classTag(),
                         "user is ${authResponse.data.uid}  ${authResponse.data.displayName} ${authResponse.data.photoUrl}"
                     )
-
-                    // here refactor
-                    when (val firestoreResponse =
-                        userService.createUser(
-                            UserProfileResponse(
-                                userId = authResponse.data.uid,
-                                name = authResponse.data.displayName ?: "",
-                                email = authResponse.data.email ?: "",
-                                profileImageUrl = (authResponse.data.photoUrl ?: "").toString()
-                            )
-                        )) {
-                        is ResultResponse.Success -> {
-                            saveUserInPref(
-                                UserSummary(
-                                    name = authResponse.data.displayName ?: "",
-                                    userId = authResponse.data.uid,
-                                    profileImageUrl = (authResponse.data.photoUrl ?: "").toString()
-                                )
-                            )
-                            return@withContext ResultResponse.Success(Unit)
-                        }
-
-                        is ResultResponse.Failed -> return@withContext ResultResponse.Failed(
-                            firestoreResponse.exception
-                        )
-                    }
+                    return@withContext handleFirebaseSsoUser(authResponse.data)
                 }
 
                 is ResultResponse.Failed -> {
@@ -131,14 +106,49 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    suspend fun handleFirebaseSsoUser(firebaseUser: FirebaseUser): ResultResponse<Unit>{
-       return withContext(Dispatchers.IO){
-           if (!userService.isUserExists(firebaseUser.uid)){
-               userService.createUser(UserSummary(
-                   userId = firebaseUser.uid
-                   
-               ))
-           }
+    private suspend fun handleFirebaseSsoUser(firebaseUser: FirebaseUser): ResultResponse<Unit> {
+        return withContext(Dispatchers.IO) {
+            if (!userService.isUserExists(firebaseUser.uid)) {
+                when (val firestoreResponse =
+                    userService.createUser(
+                        UserProfileResponse(
+                            userId = firebaseUser.uid,
+                            name = firebaseUser.displayName ?: "",
+                            email = firebaseUser.email ?: "",
+                            profileImageUrl = (firebaseUser.photoUrl ?: "").toString()
+                        )
+                    )) {
+                    is ResultResponse.Success -> {
+                        saveUserInPref(
+                            UserSummary(
+                                name = firestoreResponse.data.name,
+                                userId = firestoreResponse.data.userId,
+                                profileImageUrl = firestoreResponse.data.profileImageUrl
+                            )
+                        )
+                        return@withContext ResultResponse.Success(Unit)
+                    }
+
+                    is ResultResponse.Failed -> return@withContext ResultResponse.Failed(
+                        firestoreResponse.exception
+                    )
+                }
+            }
+            val userProfile = userService.getUserProfileDetails(firebaseUser.uid)
+            Log.i(tempTag(), "user profile is $userProfile")
+            if (userProfile != null) {
+                saveUserInPref(
+                    UserSummary(
+                        name = userProfile.name,
+                        userId = userProfile.userId,
+                        profileImageUrl = userProfile.profileImageUrl
+                    )
+                )
+                return@withContext ResultResponse.Success(Unit)
+            } else {
+                authService.logOut()
+                return@withContext ResultResponse.Failed(Exception("Error in getting user details but login was success"))
+            }
         }
     }
 

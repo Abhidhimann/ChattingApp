@@ -29,12 +29,12 @@ class UserServiceRepositoryImpl @Inject constructor(
     private val appPrefs: SharedPreferences
 ) {
     // todo later change it to db
-    private var getUser: Lazy<UserSummary?> = lazy {
+    private fun getUser(): UserSummary? {
         val userId = appPrefs.getString("user_id", "")
         val profileImageUrl = appPrefs.getString("profile_url", "")
         val name = appPrefs.getString("user_name", "")
-        if (userId == null || profileImageUrl == null || name == null) return@lazy null
-        return@lazy UserSummary(name = name, profileImageUrl = profileImageUrl, userId = userId)
+        if (userId == null || profileImageUrl == null || name == null) return null
+        return UserSummary(name = name, profileImageUrl = profileImageUrl, userId = userId)
     }
 
     private fun saveUserInPref(userSummary: UserSummary) {
@@ -65,7 +65,7 @@ class UserServiceRepositoryImpl @Inject constructor(
 //    }
 
     suspend fun observeNonConnectedUsers() = withContext(Dispatchers.IO) {
-        val fromUser = getUser.value
+        val fromUser = getUser()
         if (fromUser == null) {
             Log.i(tempTag(), "Error in getting user from prefs")
             return@withContext emptyFlow<UserProfile>()
@@ -117,7 +117,7 @@ class UserServiceRepositoryImpl @Inject constructor(
 
     suspend fun getSelfProfileDetails(): UserProfile? {
         return withContext(Dispatchers.IO) {
-            val selfUser = getUser.value
+            val selfUser = getUser()
             if (selfUser == null) {
                 Log.i(tempTag(), "Error in getting userId")
                 return@withContext null
@@ -162,46 +162,46 @@ class UserServiceRepositoryImpl @Inject constructor(
 
     suspend fun sendConnectionRequest(toUserId: String): Int {
         return withContext(Dispatchers.IO) {
-            val fromUser = getUser.value
+            val fromUser = getUser()
             if (fromUser == null) {
                 Log.i(tempTag(), "Error in getting userId")
                 return@withContext -1
             }
             userService.sendConnectionRequest(
                 toUserId,
-                getUser.value!!.userId
+                fromUser.userId
             )
         }
     }
 
     suspend fun removeConnectionRequestByRequestedUser(toUserId: String) =
         withContext(Dispatchers.IO) {
-            val fromUser = getUser.value
+            val fromUser = getUser()
             if (fromUser == null) {
                 Log.i(tempTag(), "Error in getting userId")
                 return@withContext
             }
             userService.removeConnectRequest(
                 toUserId,
-                getUser.value!!.userId
+                fromUser.userId
             )
         }
 
     suspend fun removeConnectionRequestBySelf(toUserId: String) =
         withContext(Dispatchers.IO) {
-            val fromUser = getUser.value
+            val fromUser = getUser()
             if (fromUser == null) {
                 Log.i(tempTag(), "Error in getting userId")
                 return@withContext
             }
             userService.removeConnectRequest(
-                getUser.value!!.userId,
+                fromUser.userId,
                 toUserId
             )
         }
 
     suspend fun observeIncomingRequests() = withContext(Dispatchers.IO) {
-        val fromUser = getUser.value
+        val fromUser = getUser()
         if (fromUser == null) {
             Log.i(tempTag(), "Error in getting userId")
             return@withContext emptyFlow<UserProfile>()
@@ -213,7 +213,7 @@ class UserServiceRepositoryImpl @Inject constructor(
 
     suspend fun acceptConnectionRequest(fromUser: UserSummary): Int {
         return withContext(Dispatchers.IO) {
-            val toUser = getUser.value
+            val toUser = getUser()
             if (toUser == null) {
                 Log.i(tempTag(), "Error in getting userId")
                 return@withContext -1
