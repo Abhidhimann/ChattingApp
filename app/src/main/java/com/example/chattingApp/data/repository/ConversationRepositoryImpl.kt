@@ -21,16 +21,16 @@ class ConversationRepositoryImpl @Inject constructor(
 ) {
 
     // todo later change it to db
-    private var getUser: UserSummary? = run {
+    private fun getUser(): UserSummary?  {
         val userId = appPrefs.getString("user_id", "")
         val profileImageUrl = appPrefs.getString("profile_url", "")
         val name = appPrefs.getString("user_name", "")
-        if (userId == null || profileImageUrl == null || name == null) return@run null
-        return@run UserSummary(name = name, profileImageUrl = profileImageUrl, userId = userId)
+        if (userId == null || profileImageUrl == null || name == null) return null
+        return UserSummary(name = name, profileImageUrl = profileImageUrl, userId = userId)
     }
 
     suspend fun observerConversations() = withContext(Dispatchers.IO){
-        val selfUser = getUser
+        val selfUser = getUser()
         if (selfUser == null) {
             Log.i(tempTag(), "Error in getting user from prefs")
             return@withContext emptyFlow<Conversation>()

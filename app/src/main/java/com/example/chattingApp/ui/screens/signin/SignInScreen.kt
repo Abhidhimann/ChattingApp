@@ -70,7 +70,7 @@ fun SignInScreenRoot(navController: NavController) {
             }
 
             is SignInScreenEvent.AfterSignIn -> {
-                navController.navigate(BottomNavItem.CHAT_LIST.route)
+                navController.navigate(BottomNavItem.PROFILE.route)
             }
 
             else -> viewModel.onEvent(event)

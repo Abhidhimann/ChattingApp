@@ -61,7 +61,7 @@ class AuthRepositoryImpl @Inject constructor(
             when (val result = authService.signInByEmailAndPassword(email, password)) {
                 is ResultResponse.Success -> {
                     val userProfile = userService.getUserProfileDetails(result.data.uid)
-                    Log.i(tempTag(), "user profile is $userProfile")
+                    Log.i(tempTag(), "auth user profile is $userProfile")
                     if (userProfile != null) {
                         saveUserInPref(
                             UserSummary(
@@ -135,7 +135,7 @@ class AuthRepositoryImpl @Inject constructor(
                 }
             }
             val userProfile = userService.getUserProfileDetails(firebaseUser.uid)
-            Log.i(tempTag(), "user profile is $userProfile")
+            Log.i(tempTag(), "auth user profile to save in pre is $userProfile")
             if (userProfile != null) {
                 saveUserInPref(
                     UserSummary(

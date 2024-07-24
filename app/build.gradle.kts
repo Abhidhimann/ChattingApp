@@ -112,8 +112,6 @@ dependencies {
     // compress
     implementation("id.zelory:compressor:3.0.1")
 
-    // splash screen
-    implementation("androidx.core:core-splashscreen:1.0.0")
 
 
     androidTestImplementation(libs.androidx.junit)
