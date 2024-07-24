@@ -17,7 +17,7 @@ class ImageServiceImpl(private val storageRef: StorageReference) : ImageService 
         imageUri: Uri
     ): ResultResponse<String> {
         return withContext(Dispatchers.IO) {
-            val imageRef = storageRef.child("$path/${UUID.randomUUID()}.jpg")
+            val imageRef = storageRef.child("$path.jpg")
             try {
                 imageRef.putFile(imageUri).await()
                 ResultResponse.Success(imageRef.downloadUrl.await().toString())

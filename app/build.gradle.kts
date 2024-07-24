@@ -109,6 +109,12 @@ dependencies {
 //    // shimmer
 //    implementation("com.valentinilk.shimmer:compose-shimmer:1.3.0")
 
+    // compress
+    implementation("id.zelory:compressor:3.0.1")
+
+    // splash screen
+    implementation("androidx.core:core-splashscreen:1.0.0")
+
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

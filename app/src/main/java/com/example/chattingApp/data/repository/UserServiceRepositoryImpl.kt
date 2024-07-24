@@ -1,9 +1,9 @@
 package com.example.chattingApp.data.repository
 
+import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
-import androidx.core.net.toUri
 import com.example.chattingApp.data.remote.AuthService
 import com.example.chattingApp.data.remote.ImageService
 import com.example.chattingApp.data.remote.UserService
@@ -11,7 +11,11 @@ import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.domain.model.UserRelation
 import com.example.chattingApp.domain.model.UserSummary
 import com.example.chattingApp.utils.ResultResponse
+import com.example.chattingApp.utils.classTag
+import com.example.chattingApp.utils.compressImageTillSize
+import com.example.chattingApp.utils.fileFromContentUri
 import com.example.chattingApp.utils.tempTag
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -26,7 +30,8 @@ class UserServiceRepositoryImpl @Inject constructor(
     private val userService: UserService,
     private val imageService: ImageService,
     private val authService: AuthService,
-    private val appPrefs: SharedPreferences
+    private val appPrefs: SharedPreferences,
+    @ApplicationContext private val applicationContext: Context
 ) {
     // todo later change it to db
     private fun getUser(): UserSummary? {
@@ -226,13 +231,28 @@ class UserServiceRepositoryImpl @Inject constructor(
     }
 
     suspend fun uploadUserPic(imageUri: Uri): ResultResponse<String> {
+        val fromUser =
+            getUser() ?: return ResultResponse.Failed(Exception("Error in getting userId"))
+
         return withContext(Dispatchers.IO) {
-            return@withContext imageService.uploadImageToFirebaseStorage("userPictures", imageUri)
+            val imageFile = fileFromContentUri(applicationContext, imageUri)
+            val compressedImageFile = compressImageTillSize(applicationContext, imageFile, 0.6)
+            Log.i(classTag(), "file size is ${compressedImageFile.length()}")
+            val resultUri = Uri.fromFile(compressedImageFile)
+            if (resultUri == null) {
+                Log.i(classTag(), "unable to compress image uri is null")
+                return@withContext ResultResponse.Failed(Exception("unable to compress image uri is null"))
+            }
+//            return@withContext ResultResponse.Failed(Exception("unable to compress image uri is null"))
+            return@withContext imageService.uploadImageToFirebaseStorage(
+                "userPictures/${fromUser.userId}",
+                resultUri
+            )
         }
     }
 
     suspend fun logOut(): ResultResponse<Unit> {
-        return withContext(Dispatchers.IO){
+        return withContext(Dispatchers.IO) {
             authService.logOut()
         }
     }

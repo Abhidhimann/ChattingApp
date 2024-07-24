@@ -37,3 +37,4 @@ fun NavigationHost(navController: NavHostController, startDestination: String) {
         composable(route = "startLoadingScreen") { StartLoadingScreen() }
     }
 }
+

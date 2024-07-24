@@ -9,8 +9,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.chattingApp.domain.repository.AuthRepository
 import com.example.chattingApp.utils.classTag
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -21,12 +23,12 @@ class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
+    // todo later change it to enum authState
     var authState by mutableStateOf<Boolean?>(null)
         private set
 
-//    var isAuthenticate: StateFlow<Boolean> = authRepository.getAuthState()
-//        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
-//        private set
+    private val _isAuthenticate: MutableStateFlow<Boolean?> = MutableStateFlow(null)
+    val isAuthenticate: StateFlow<Boolean?> = _isAuthenticate.asStateFlow()
 
     init {
         getAuthState()
@@ -35,7 +37,10 @@ class AuthViewModel @Inject constructor(
     private fun getAuthState() = viewModelScope.launch {
         authRepository.getAuthState().catch {
             Log.d(classTag(), "Error in getting auth state")
-        }.collect { authState = it }
+        }.collect {
+            authState = it
+            _isAuthenticate.value = it
+        }
     }
 
 }
