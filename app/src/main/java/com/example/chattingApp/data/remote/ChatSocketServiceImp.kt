@@ -16,7 +16,6 @@ class ChatSocketServiceImp(private val db: FirebaseFirestore) : ChatSocketServic
 
     override suspend fun sendMessage(messageResponse: MessageResponse): Int {
         try {
-
             val result = db.runTransaction { transaction ->
                 val docRef =
                     db.collection("singleChat").document(messageResponse.conversationId)

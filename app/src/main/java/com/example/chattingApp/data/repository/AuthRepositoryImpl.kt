@@ -9,6 +9,8 @@ import com.example.chattingApp.domain.model.UserSummary
 import com.example.chattingApp.domain.repository.AuthRepository
 import com.example.chattingApp.utils.ResultResponse
 import com.example.chattingApp.utils.classTag
+import com.example.chattingApp.utils.onFailure
+import com.example.chattingApp.utils.onSuccess
 import com.example.chattingApp.utils.tempTag
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.Dispatchers
@@ -60,20 +62,23 @@ class AuthRepositoryImpl @Inject constructor(
         return withContext(Dispatchers.IO) {
             when (val result = authService.signInByEmailAndPassword(email, password)) {
                 is ResultResponse.Success -> {
-                    val userProfile = userService.getUserProfileDetails(result.data.uid)
-                    Log.i(tempTag(), "auth user profile is $userProfile")
-                    if (userProfile != null) {
-                        saveUserInPref(
-                            UserSummary(
-                                name = userProfile.name,
-                                userId = userProfile.userId,
-                                profileImageUrl = userProfile.profileImageUrl
+                    when (val userProfileResult =
+                        userService.getUserProfileDetails(result.data.uid)) {
+                        is ResultResponse.Success -> {
+                            saveUserInPref(
+                                UserSummary(
+                                    name = userProfileResult.data.name,
+                                    userId = userProfileResult.data.userId,
+                                    profileImageUrl = userProfileResult.data.profileImageUrl
+                                )
                             )
-                        )
-                        return@withContext ResultResponse.Success(Unit)
-                    } else {
-                        authService.logOut()
-                        return@withContext ResultResponse.Failed(Exception("Error in getting user details but login was success"))
+                            return@withContext ResultResponse.Success(Unit)
+                        }
+
+                        is ResultResponse.Failed -> {
+                            authService.logOut()
+                            return@withContext ResultResponse.Failed(userProfileResult.exception)
+                        }
                     }
                 }
 
@@ -134,20 +139,22 @@ class AuthRepositoryImpl @Inject constructor(
                     )
                 }
             }
-            val userProfile = userService.getUserProfileDetails(firebaseUser.uid)
-            Log.i(tempTag(), "auth user profile to save in pre is $userProfile")
-            if (userProfile != null) {
-                saveUserInPref(
-                    UserSummary(
-                        name = userProfile.name,
-                        userId = userProfile.userId,
-                        profileImageUrl = userProfile.profileImageUrl
+            when (val userProfileResult = userService.getUserProfileDetails(firebaseUser.uid)) {
+                is ResultResponse.Success -> {
+                    saveUserInPref(
+                        UserSummary(
+                            name = userProfileResult.data.name,
+                            userId = userProfileResult.data.userId,
+                            profileImageUrl = userProfileResult.data.profileImageUrl
+                        )
                     )
-                )
-                return@withContext ResultResponse.Success(Unit)
-            } else {
-                authService.logOut()
-                return@withContext ResultResponse.Failed(Exception("Error in getting user details but login was success"))
+                    return@withContext ResultResponse.Success(Unit)
+                }
+
+                is ResultResponse.Failed -> {
+                    authService.logOut()
+                    return@withContext ResultResponse.Failed(userProfileResult.exception)
+                }
             }
         }
     }

@@ -1,8 +1,6 @@
 package com.example.chattingApp.ui.screens.editprofilescreen
 
 
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -26,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -37,6 +36,7 @@ import com.example.chattingApp.ui.BottomNavItem
 import com.example.chattingApp.ui.screens.profilescreen.ProfilePicture
 import com.example.chattingApp.ui.screens.profilescreen.SimpleScreenAppBar
 import com.example.chattingApp.utils.ToastUtil
+import com.example.chattingApp.utils.Validation.validateName
 import com.example.chattingApp.utils.rememberImagePickerLauncher
 import com.example.chattingApp.viewModel.EditProfileViewModel
 
@@ -76,23 +76,6 @@ fun EditProfileScreenContent(
         }
     }
 
-    val userProfile = state.userProfile
-    val context = LocalContext.current.applicationContext
-
-    LaunchedEffect(state) {
-        Log.d("ABHITAG", "user profile1 is ${state.userProfile}")
-    }
-
-    if (state.updatingResult == true) {
-        LaunchedEffect(state.updatingResult) {
-            ToastUtil.shortToast(context, "Update Successful")
-//            onEvent(EditProfileScreenEvent.CancelOrBack)
-        }
-    } else if (state.updatingResult == false) {
-        LaunchedEffect(state.updatingResult) {
-            ToastUtil.shortToast(context, "Update failed, please try again later")
-        }
-    }
     Scaffold(
         topBar = {
             SimpleScreenAppBar(title = "Edit Profile", menuActions = {}, navigationIcon = {
@@ -107,8 +90,8 @@ fun EditProfileScreenContent(
         },
         modifier = Modifier.fillMaxSize(),
     ) { innerPadding ->
-        EditProfileScreenSurface(
-            userProfile = userProfile,
+        EditProfileContent(
+            state = state,
             modifier = Modifier
                 .padding(innerPadding)
                 .imePadding()
@@ -119,18 +102,29 @@ fun EditProfileScreenContent(
 }
 
 @Composable
-fun EditProfileScreenSurface(
-    userProfile: UserProfile?,
+fun EditProfileContent(
+    state: EditProfileScreenState,
     modifier: Modifier,
     onEvent: (EditProfileScreenEvent) -> Unit
 ) {
-    val maxNameLength = 16 // use enum on constant somewhere
     val maxInterestsLength = 36
+    val maxAboutMeLength = 100
+    val userProfile = state.userProfile
     var updateUserProfile by remember {
         mutableStateOf(userProfile)
     }
+    val context = LocalContext.current.applicationContext
+
+    LaunchedEffect(state.updatingResult) {
+        if (state.updatingResult == true) {
+            ToastUtil.shortToast(context, "Update Successful")
+            onEvent(EditProfileScreenEvent.CancelOrBack)
+        } else if (state.updatingResult == false) {
+            ToastUtil.shortToast(context, "Update failed, please try again later")
+        }
+    }
+    var nameError by remember { mutableStateOf(Pair(false, "")) }
     LaunchedEffect(userProfile) {
-        Log.i("ABHITAG", "user profile is $userProfile")
         updateUserProfile = userProfile
     }
 
@@ -146,6 +140,7 @@ fun EditProfileScreenSurface(
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         ProfilePicture(
             userProfile?.profileImageUrl, modifier = Modifier
                 .padding(4.dp)
@@ -162,12 +157,12 @@ fun EditProfileScreenSurface(
             )
         )
 
-
         OutlinedTextField(
             value = updateUserProfile?.name ?: "",
             onValueChange = {
-                if (it.length < maxNameLength) updateUserProfile =
+                updateUserProfile =
                     updateUserProfile?.copy(name = it)
+                nameError = validateName(it)
             },
             singleLine = true,
             label = { Text("Name") },
@@ -175,12 +170,23 @@ fun EditProfileScreenSurface(
                 .fillMaxWidth()
                 .padding(8.dp)  // can add supporting text also
         )
+        if (nameError.first) {
+            Text(
+                text = nameError.second,
+                textAlign = TextAlign.Start,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, end = 8.dp)
+            )
+        }
 
 
         OutlinedTextField(
             value = updateUserProfile?.aboutMe ?: "",
             onValueChange = {
-                updateUserProfile = updateUserProfile?.copy(aboutMe = it)
+                if (it.length < maxAboutMeLength) updateUserProfile =
+                    updateUserProfile?.copy(aboutMe = it)
             },
             label = { Text("About Me") },
             maxLines = 3,

@@ -10,6 +10,7 @@ import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.data.repository.UserServiceRepositoryImpl
 import com.example.chattingApp.ui.screens.discoverscreen.DiscoverScreenEvent
 import com.example.chattingApp.ui.screens.discoverscreen.DiscoverScreenState
+import com.example.chattingApp.utils.ResultResponse
 import com.example.chattingApp.utils.classTag
 import com.example.chattingApp.utils.tempTag
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -54,25 +55,28 @@ class DiscoverViewModel @Inject constructor(
     }
 
     private fun sendConnectionRequest(toUser: UserProfile) = viewModelScope.launch {
-        val sendRequest = async { repository.sendConnectionRequest(toUser.userId) }
-        val result = sendRequest.await()
-        if (result == -1) {
-            Log.i(tempTag(), "Connection request failed to ${toUser.userId}")
-            return@launch
-        }
-        val updatedUsers = state.users.toMutableList()
-        Log.i(tempTag(), "updated user $updatedUsers and $toUser")
-        val existingUserIndex = updatedUsers.indexOfFirst { it.userId == toUser.userId }
-        Log.i(tempTag(), "index $existingUserIndex")
-        if (existingUserIndex != -1) {
-            // either remove or do this
+        val sendRequestDeff = repository.sendConnectionRequest(toUser.toUserSummary())
+        when (val result = sendRequestDeff) {
+            is ResultResponse.Failed -> {
+
+            }
+
+            is ResultResponse.Success -> {
+                val updatedUsers = state.users.toMutableList()
+                Log.i(tempTag(), "updated user $updatedUsers and $toUser")
+                val existingUserIndex = updatedUsers.indexOfFirst { it.userId == toUser.userId }
+                Log.i(tempTag(), "index $existingUserIndex")
+                if (existingUserIndex != -1) {
+                    // either remove or do this
 //            toUser.relation = UserRelation.ALREADY_REQUESTED
 //            updatedUsers[existingUserIndex] = toUser
-            updatedUsers.remove(toUser)
+                    updatedUsers.remove(toUser)
+                }
+                Log.i(tempTag(), "after $updatedUsers")
+                state = state.copy(users = updatedUsers)
+                Log.i(tempTag(), "state after update: $state")
+            }
         }
-        Log.i(tempTag(), "after $updatedUsers")
-        state = state.copy(users = updatedUsers)
-        Log.i(tempTag(), "state after update: $state")
     }
 
     private fun removeConnectionRequest(toUser: UserProfile) = viewModelScope.launch {
@@ -96,12 +100,6 @@ class DiscoverViewModel @Inject constructor(
         }
     }
 
-//    fun createUserIfNotExists() = viewModelScope.launch {
-//        if (!repository.isUserIdExists()) {
-//            Log.i(tempTag(), "creating user")
-//            repository.createUser()
-//        }
-//    }
 
     private fun isUserProfileExists() = viewModelScope.launch {
         val result = repository.isUserProfileExists()
@@ -109,13 +107,13 @@ class DiscoverViewModel @Inject constructor(
         state = state.copy(isUserProfileExists = result)
     }
 
-    fun updateUserOnlineStatus(value: Boolean) =
+    private fun updateUserOnlineStatus(value: Boolean) =
         viewModelScope.launch {
 //            repository.updateUserOnlineStatus(value)
         }
 
-    private fun temp() = viewModelScope.launch {
-        repository.temp()
-    }
+//    private fun temp() = viewModelScope.launch {
+//        repository.temp()
+//    }
 
 }

@@ -1,9 +1,9 @@
 package com.example.chattingApp.ui.screens.requestscreen
 
-import com.example.chattingApp.domain.model.UserProfile
+import com.example.chattingApp.domain.model.UserSummary
 
 
 data class RequestScreenState (
-    var requestedUsers: List<UserProfile> = emptyList(),
+    var requestedUsers: List<UserSummary> = emptyList(),
     val isLoading: Boolean = false
 )

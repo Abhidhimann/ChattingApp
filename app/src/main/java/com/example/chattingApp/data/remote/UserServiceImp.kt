@@ -1,23 +1,19 @@
 package com.example.chattingApp.data.remote
 
 import android.util.Log
+import com.example.chattingApp.data.remote.dto.MessageResponse
 import com.example.chattingApp.data.remote.dto.SingleChatResponse
 import com.example.chattingApp.data.remote.dto.UserProfileResponse
 import com.example.chattingApp.data.remote.dto.UserSummaryResponse
 import com.example.chattingApp.utils.ResultResponse
 import com.example.chattingApp.utils.classTag
 import com.example.chattingApp.utils.tempTag
-import com.google.firebase.firestore.DocumentReference
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
@@ -25,81 +21,86 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
 
     // todo change user then it will be o(1) instead of o(n) in
     override suspend fun createUser(userDto: UserProfileResponse): ResultResponse<UserProfileResponse> {
-        try {
-            db.collection("users_details").document(userDto.userId).set(userDto).await()
-            return ResultResponse.Success(userDto)
-        } catch (e: Exception) {
-            Log.i(classTag(), "error in creating user $e")
-            return ResultResponse.Failed(e)
+        return withContext(Dispatchers.IO) {
+            try {
+                db.collection("users_details").document(userDto.userId).set(userDto).await()
+                return@withContext ResultResponse.Success(userDto)
+            } catch (e: Exception) {
+                Log.i(classTag(), "error in creating user $e")
+                return@withContext ResultResponse.Failed(e)
+            }
         }
     }
 
     override suspend fun isUserExists(userId: String): Boolean {
-        try {
-            return db.collection("users_details").document(userId).get().await().exists()
-        } catch (e: Exception) {
-            Log.i(classTag(), "error in fetching user $e")
-            return false
+        return withContext(Dispatchers.IO) {
+            try {
+                return@withContext db.collection("users_details").document(userId).get().await()
+                    .exists()
+            } catch (e: Exception) {
+                Log.i(classTag(), "error in fetching user $e")
+                return@withContext false
+            }
         }
     }
 
-    override suspend fun getUserProfileDocumentReference(userId: String): DocumentReference? {
-        try {
-            return db.collection("users_details").document(userId)
-        } catch (e: Exception) {
-            Log.i(tempTag(), "Fetching user profile reference failed with $e")
-            return null
+    override suspend fun updateUserProfile(userProfile: UserProfileResponse): ResultResponse<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                db.collection("users_details").document(userProfile.userId).set(userProfile)
+                    .await()
+                return@withContext ResultResponse.Success(Unit)
+            } catch (e: Exception) {
+                Log.i(classTag(), "error in adding message $e")
+                return@withContext ResultResponse.Failed(e)
+            }
         }
-    }
-
-    override suspend fun updateUserProfile(userProfile: UserProfileResponse): Int {
-        try {
-            db.collection("users_details").document(userProfile.userId).set(userProfile)
-                .await()
-            return 1
-        } catch (e: Exception) {
-            Log.i(classTag(), "error in adding message $e")
-        }
-        return 0
     }
 
     override suspend fun updateUserOnlineStatus(userId: String, value: Boolean): Int {
-        try {
-            db.collection("users_details").document(userId).update("ready_to_chat", value).await()
-            return 1
-        } catch (e: Exception) {
-            Log.i(classTag(), "error in adding message $e")
-            return -1
+        return withContext(Dispatchers.IO) {
+            try {
+                db.collection("users_details").document(userId).update("ready_to_chat", value)
+                    .await()
+                return@withContext 1
+            } catch (e: Exception) {
+                Log.i(classTag(), "error in adding message $e")
+                return@withContext -1
+            }
         }
     }
 
     override suspend fun sendConnectionRequest(
-        toUserId: String,
-        fromUserId: String
-    ): Int {
-        try {
-            val toUserIncomingRequestRef =
-                db.collection("users_details").document(toUserId).collection("incoming_requests")
-                    .document(fromUserId)
-            val fromUserOutgoingRequestRef =
-                db.collection("users_details").document(fromUserId).collection("outgoing_requests")
-                    .document(toUserId)
-            // foreign key user_id in tables from user_details
-            db.runTransaction { transaction ->
-                transaction.set(
-                    toUserIncomingRequestRef,
-                    mapOf("user_id" to fromUserId, "created_at" to FieldValue.serverTimestamp())
-                )
-                transaction.set(
-                    fromUserOutgoingRequestRef,
-                    mapOf("user_id" to toUserId, "created_at" to FieldValue.serverTimestamp())
-                )
-                Log.i(tempTag(), "Transaction successfully committed")
-            }.await()
-            return 1
-        } catch (e: Exception) {
-            Log.e(tempTag(), "send connection transaction failed", e)
-            return -1
+        toUserSummary: UserSummaryResponse,
+        fromUserSummary: UserSummaryResponse
+    ): ResultResponse<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val toUserIncomingRequestRef =
+                    db.collection("users_details").document(toUserSummary.userId)
+                        .collection("incoming_requests")
+                        .document(fromUserSummary.userId)
+                val fromUserOutgoingRequestRef =
+                    db.collection("users_details").document(fromUserSummary.userId)
+                        .collection("outgoing_requests")
+                        .document(toUserSummary.userId)
+                // foreign key user_id in tables from user_details
+                db.runTransaction { transaction ->
+                    transaction.set(
+                        toUserIncomingRequestRef,
+                        fromUserSummary
+                    )
+                    transaction.set(
+                        fromUserOutgoingRequestRef,
+                        toUserSummary
+                    )
+                    Log.i(tempTag(), "Transaction successfully committed")
+                }.await()
+                return@withContext ResultResponse.Success(Unit)
+            } catch (e: Exception) {
+                Log.e(tempTag(), "send connection transaction failed", e)
+                return@withContext ResultResponse.Failed(e)
+            }
         }
     }
 
@@ -107,19 +108,27 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
     override suspend fun removeConnectRequest(
         toUserId: String,
         fromUserId: String
-    ): Int {
-        val toUserIncomingRequestRef =
-            db.collection("users_details").document(toUserId).collection("incoming_requests")
-                .document(fromUserId)
-        val fromUserOutgoingRequestRef =
-            db.collection("users_details").document(fromUserId).collection("outgoing_requests")
-                .document(toUserId)
-        val result = db.runTransaction { transaction ->
-            transaction.delete(toUserIncomingRequestRef)
-            transaction.delete(fromUserOutgoingRequestRef)
-            Log.i(tempTag(), "Transaction successfully committed")
-        }.await()
-        return result
+    ): ResultResponse<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val toUserIncomingRequestRef =
+                    db.collection("users_details").document(toUserId)
+                        .collection("incoming_requests")
+                        .document(fromUserId)
+                val fromUserOutgoingRequestRef =
+                    db.collection("users_details").document(fromUserId)
+                        .collection("outgoing_requests")
+                        .document(toUserId)
+                db.runTransaction { transaction ->
+                    transaction.delete(toUserIncomingRequestRef)
+                    transaction.delete(fromUserOutgoingRequestRef)
+                    Log.i(tempTag(), "Transaction successfully committed")
+                }.await()
+                return@withContext ResultResponse.Success(Unit)
+            } catch (e: Exception) {
+                return@withContext ResultResponse.Failed(e)
+            }
+        }
     }
 
     override suspend fun observeNonConnectedUsers(
@@ -152,19 +161,28 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
             awaitClose { listenerRegistration.remove() }
         }
 
-    // todo see if need to listen this change or not
-    override suspend fun getUserProfileDetails(userId: String): UserProfileResponse? {
-        return try {
-            Log.i(tempTag(), "request userid is $userId")
-            return db.collection("users_details").document(userId).get().await()
-                .toObject(UserProfileResponse::class.java)
-        } catch (e: Exception) {
-            Log.i(classTag(), "error in getting userProfile $e")
-            null
+    // todo see if need to listen this change or not as if user is some other user profile screen
+    // then details will only change at opening use profile again.
+    override suspend fun getUserProfileDetails(userId: String): ResultResponse<UserProfileResponse> {
+        return withContext(Dispatchers.IO) {
+            try {
+                Log.i(tempTag(), "request userid is $userId")
+                val userProfileResponse =
+                    db.collection("users_details").document(userId).get().await()
+                        .toObject(UserProfileResponse::class.java)
+                if (userProfileResponse != null) {
+                    return@withContext ResultResponse.Success(userProfileResponse)
+                } else {
+                    return@withContext ResultResponse.Failed(Exception("user profile $userId is null"))
+                }
+            } catch (e: Exception) {
+                Log.i(classTag(), "error in getting userProfile $e")
+                return@withContext ResultResponse.Failed(e)
+            }
         }
     }
 
-    override suspend fun getUserFriends(userId: String): List<UserProfileResponse> {
+    override suspend fun getUserFriendsDetails(userId: String): ResultResponse<List<UserSummaryResponse>> {
         return withContext(Dispatchers.IO) {
             try {
                 val friendSnapshot =
@@ -172,18 +190,17 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
                         .await()
 
                 if (friendSnapshot != null && !friendSnapshot.isEmpty) {
-                    friendSnapshot.documents.map { document ->
-                        async {
-                            val friendUserId = document.id
-                            getUserProfileDetails(friendUserId)
-                        }
-                    }.awaitAll().filterNotNull()
+                    return@withContext ResultResponse.Success(friendSnapshot.documents.mapNotNull {
+                        it.toObject(
+                            UserSummaryResponse::class.java
+                        )!!
+                    })
                 } else {
-                    emptyList()
+                    return@withContext ResultResponse.Failed(Exception("get user friends snapshot $userId is empty"))
                 }
             } catch (e: Exception) {
                 Log.i(tempTag(), "error in fetching user friends -> $e")
-                emptyList()
+                return@withContext ResultResponse.Failed(e)
             }
         }
     }
@@ -194,56 +211,58 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
      * name or profile pic have to send push notification
      * i think duplication is much better so todo
      */
-    override suspend fun getUserIncomingConnectRequests(userId: String): List<UserProfileResponse> {
+    override suspend fun getIncomingConnectRequestingUsers(userId: String): ResultResponse<List<UserSummaryResponse>> {
         return withContext(Dispatchers.IO) {
             try {
                 val incomingRequestSnapshot =
                     db.collection("users_details").document(userId).collection("incoming_requests")
-                        .orderBy("created_at", Query.Direction.DESCENDING)
+                        .orderBy("createdAt", Query.Direction.DESCENDING)
                         .get()
                         .await()
 
                 if (incomingRequestSnapshot != null && !incomingRequestSnapshot.isEmpty) {
-                    incomingRequestSnapshot.documents.map { document ->
-                        async {
-                            getUserProfileDetails(document.id)
-                        }
-                    }.awaitAll().filterNotNull()
+                    return@withContext ResultResponse.Success(incomingRequestSnapshot.documents.map {
+                        it.toObject(
+                            UserSummaryResponse::class.java
+                        )!!
+                    })
                 } else {
-                    emptyList()
+                    return@withContext ResultResponse.Failed(Exception("UserIncomingConnect request snapshot $userId is emptp"))
                 }
             } catch (e: Exception) {
                 Log.i(tempTag(), "error in fetching user friends -> $e")
-                emptyList()
+                return@withContext ResultResponse.Failed(e)
             }
         }
     }
 
-    override suspend fun getUserOutgoingConnectRequests(userId: String): List<UserProfileResponse> {
+    override suspend fun getOutgoingConnectRequestingUsers(userId: String): ResultResponse<List<UserSummaryResponse>> {
         return withContext(Dispatchers.IO) {
             try {
                 val outgoingRequestSnapshot =
                     db.collection("users_details").document(userId).collection("outgoing_requests")
+                        .orderBy("createdAt", Query.Direction.DESCENDING)
                         .get()
                         .await()
 
                 if (outgoingRequestSnapshot != null && !outgoingRequestSnapshot.isEmpty) {
-                    outgoingRequestSnapshot.documents.map { document ->
-                        async {
-                            getUserProfileDetails(document.id)
-                        }
-                    }.awaitAll().filterNotNull()
+                    return@withContext ResultResponse.Success(outgoingRequestSnapshot.documents.map {
+                        it.toObject(
+                            UserSummaryResponse::class.java
+                        )!!
+                    })
                 } else {
-                    emptyList()
+                    return@withContext ResultResponse.Failed(Exception("User outgoing Connect snapshot $userId is emptp"))
                 }
             } catch (e: Exception) {
                 Log.i(tempTag(), "error in fetching user friends -> $e")
-                emptyList()
+                return@withContext ResultResponse.Failed(e)
             }
         }
     }
 
-    override suspend fun observeConnectionRequests(userId: String): Flow<UserProfileResponse> =
+    // todo later replace it with PNS -> db -> observe
+    override suspend fun observeConnectionRequests(userId: String): Flow<UserSummaryResponse?> =
         callbackFlow {
             val querySnapshot =
                 db.collection("/users_details/$userId/incoming_requests")
@@ -257,18 +276,15 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
                 }
 
                 if (snapshots != null && !snapshots.isEmpty) {
-                    launch(Dispatchers.IO) {
-                        val jobs = snapshots.documentChanges.map { documentChange ->
-                            async {
-                                val requestUserId = documentChange.document.id
-                                val userProfile = getUserProfileDetails(requestUserId)
-                                userProfile?.let { trySend(it).isSuccess }
-                            }
-                        }
-                        jobs.awaitAll()
+                    for (document in snapshots.documentChanges) {
+                        val userSummary =
+                            document.document.toObject(UserSummaryResponse::class.java)
+                        Log.i(tempTag(), "user $userSummary")
+                        trySend(userSummary)
                     }
                 } else {
                     Log.d(classTag(), "No users found ${snapshots?.isEmpty}")
+                    trySend(null)
                 }
             }
             awaitClose { listenerRegistration.remove() }
@@ -277,7 +293,7 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
     override suspend fun acceptConnectRequestAndCreateChat(
         toUser: UserSummaryResponse,
         fromUser: UserSummaryResponse
-    ): Int {
+    ): ResultResponse<Unit> {
         return withContext(Dispatchers.IO) {
             try {
                 val toUserIncomingRequestRef = db.collection("users_details")
@@ -302,11 +318,11 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
 
                 val singleChatRef = db.collection("singleChat").document()
 
-                val result = db.runTransaction { transaction ->
+                db.runTransaction { transaction ->
                     transaction.delete(toUserIncomingRequestRef)
                     transaction.delete(fromUserOutgoingRequestRef)
-                    transaction.set(toUserFriendRef, mapOf("userId" to fromUser.userId))
-                    transaction.set(fromUserFriendRef, mapOf("userId" to toUser.userId))
+                    transaction.set(toUserFriendRef, fromUser)
+                    transaction.set(fromUserFriendRef, toUser)
 
                     val singleChatResponse = SingleChatResponse(
                         chatId = singleChatRef.id,
@@ -317,14 +333,12 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
 
                     transaction.set(singleChatRef, singleChatResponse)
                     transaction.update(singleChatRef, "chatId", singleChatRef.id)
-
-                    1
                 }.await()
 
-                return@withContext result
+                return@withContext ResultResponse.Success(Unit)
             } catch (e: Exception) {
                 Log.e(classTag(), "Error in acceptConnectRequestAndCreateChat: $e")
-                return@withContext -1
+                return@withContext ResultResponse.Failed(e)
             }
         }
     }

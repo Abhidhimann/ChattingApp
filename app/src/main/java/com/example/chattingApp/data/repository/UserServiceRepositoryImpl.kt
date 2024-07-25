@@ -14,6 +14,8 @@ import com.example.chattingApp.utils.ResultResponse
 import com.example.chattingApp.utils.classTag
 import com.example.chattingApp.utils.compressImageTillSize
 import com.example.chattingApp.utils.fileFromContentUri
+import com.example.chattingApp.utils.onFailure
+import com.example.chattingApp.utils.onSuccess
 import com.example.chattingApp.utils.tempTag
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -50,54 +52,42 @@ class UserServiceRepositoryImpl @Inject constructor(
         }.apply()
     }
 
-//    suspend fun createUser() {
-//        withContext(Dispatchers.IO) {
-//            val result = userService.createUser()
-//            Log.i(tempTag(), "user created with $result}")
-//            if (result.isSuccess && result.getOrNull() != null) {
-//                Log.i(tempTag(), "Yeah user create with ${result.getOrNull()}")
-//                saveUserInPref(
-//                    UserSummary(
-//                        name = "",
-//                        userId = result.getOrNull().toString(),
-//                        profileImageUrl = ""
-//                    )
-//                )
-//            } else {
-//                Log.i(tempTag(), "fail user create with ${result.exceptionOrNull()}")
-//            }
-//        }
-//    }
 
     suspend fun observeNonConnectedUsers() = withContext(Dispatchers.IO) {
-        val fromUser = getUser()
-        if (fromUser == null) {
+        val selfUser = getUser()
+        if (selfUser == null) {
             Log.i(tempTag(), "Error in getting user from prefs")
             return@withContext emptyFlow<UserProfile>()
         }
         // todo replace it with db call later
-        val fromUserFriends = async { getUserFriends(fromUser.userId) }
-        val fromUserOutgoingConnectRequest =
-            async { getUserIncomingOutgoingConnectRequests(fromUser.userId) }
-        awaitAll(fromUserFriends, fromUserOutgoingConnectRequest)
-        Log.i(
-            tempTag(),
-            "friends are ${fromUserFriends.await()} & outgoing req ${fromUserOutgoingConnectRequest.await()}"
-        )
+        val userFriendsDeff = async { getUserFriends(selfUser.userId) }
+        val userOutgoingConnectRequestsDeff =
+            async { getUserOutgoingConnectRequests(selfUser.userId) }
+
+        awaitAll(userFriendsDeff, userOutgoingConnectRequestsDeff)
+        var userFriends = emptyList<String>()
+        var userOutgoingConnectRequests = emptyList<String>()
+        userFriendsDeff.await().onSuccess {
+            userFriends = it.map { userSummary -> userSummary.userId }
+        }
+
+        userOutgoingConnectRequestsDeff.await().onSuccess {
+            userOutgoingConnectRequests = it.map { userSummary -> userSummary.userId }
+        }
+
+        Log.i(tempTag(), "friends are $userFriends & outgoing req $userOutgoingConnectRequests")
         userService.observeNonConnectedUsers(
-            fromUser.userId,
-            fromUserFriends.await().map { it.userId })
-            .map { userProfileDto ->
-                val userProfile = userProfileDto.toUserProfile()
-                // checking if user has already send a connect request before
-                // can also remove will be easy
-                if (fromUserOutgoingConnectRequest.await()
-                        .any { it.userId == userProfile.userId }
-                ) {
-                    userProfile.relation = UserRelation.ALREADY_REQUESTED
-                }
-                userProfile
-            }
+            selfUser.userId,
+            userFriends + userOutgoingConnectRequests
+        ).map { userProfileDto ->
+            val userProfile = userProfileDto.toUserProfile()
+            // checking if user has already send a connect request before
+            // can also remove will be easy
+//            if (userOutgoingConnectRequests.any { it == userProfile.userId }) {
+//                userProfile.relation = UserRelation.ALREADY_REQUESTED
+//            }
+            userProfile
+        }
     }
 
     private suspend fun getUserProfileDtoDetails(userId: String) = withContext(Dispatchers.IO) {
@@ -105,45 +95,51 @@ class UserServiceRepositoryImpl @Inject constructor(
     }
 
     private suspend fun getUserFriends(userId: String) = withContext(Dispatchers.IO) {
-        return@withContext userService.getUserFriends(userId)
+        return@withContext userService.getUserFriendsDetails(userId)
     }
 
     suspend fun getUserIncomingConnectRequests(userId: String) = withContext(Dispatchers.IO) {
-        return@withContext userService.getUserIncomingConnectRequests(userId)
+        return@withContext userService.getIncomingConnectRequestingUsers(userId)
     }
 
-    suspend fun getUserIncomingOutgoingConnectRequests(userId: String) =
+    private suspend fun getUserOutgoingConnectRequests(userId: String) =
         withContext(Dispatchers.IO) {
-            return@withContext userService.getUserOutgoingConnectRequests(userId)
+            return@withContext userService.getOutgoingConnectRequestingUsers(userId)
         }
 
     suspend fun getUserProfileDetails(userId: String) =
-        getUserProfileDtoDetails(userId)?.toUserProfile()
+        getUserProfileDtoDetails(userId).map { it.toUserProfile() }
 
-    suspend fun getSelfProfileDetails(): UserProfile? {
+    suspend fun getSelfProfileDetails(): ResultResponse<UserProfile> {
         return withContext(Dispatchers.IO) {
             val selfUser = getUser()
             if (selfUser == null) {
                 Log.i(tempTag(), "Error in getting userId")
-                return@withContext null
+                return@withContext ResultResponse.Failed(Exception("Error in getting userId"))
             }
-            getUserProfileDtoDetails(selfUser.userId)?.toUserProfile()
+            val userProfile = getUserProfileDtoDetails(selfUser.userId).map { it.toUserProfile() }
+            return@withContext userProfile
         }
     }
 
-    suspend fun updateUserProfile(userProfile: UserProfile): Int =
+    suspend fun updateUserProfile(userProfile: UserProfile): ResultResponse<Unit> =
         withContext(Dispatchers.IO) {
-            if (userService.updateUserProfile(userProfile.toUserProfileDto()) == 1) {
-                saveUserInPref(
-                    UserSummary(
-                        name = userProfile.name,
-                        userId = userProfile.userId,
-                        profileImageUrl = userProfile.profileImageUrl
+            when (val result = userService.updateUserProfile(userProfile.toUserProfileDto())) {
+                is ResultResponse.Success -> {
+                    saveUserInPref(
+                        UserSummary(
+                            name = userProfile.name,
+                            userId = userProfile.userId,
+                            profileImageUrl = userProfile.profileImageUrl
+                        )
                     )
-                )
-                return@withContext 1
+                    return@withContext ResultResponse.Success(Unit)
+                }
+
+                is ResultResponse.Failed -> {
+                    return@withContext ResultResponse.Failed(result.exception)
+                }
             }
-            return@withContext -1
             // todo later inject local datasource and update db here
         }
 
@@ -165,16 +161,16 @@ class UserServiceRepositoryImpl @Inject constructor(
         return withContext(Dispatchers.IO) { appPrefs.contains("user_profile") }
     }
 
-    suspend fun sendConnectionRequest(toUserId: String): Int {
+    // todo will implement logic if other user previous send request to me
+    // and when i send connection request to same user then i accept it instead of
+    // sending request
+    suspend fun sendConnectionRequest(toUser: UserSummary): ResultResponse<Unit> {
         return withContext(Dispatchers.IO) {
             val fromUser = getUser()
-            if (fromUser == null) {
-                Log.i(tempTag(), "Error in getting userId")
-                return@withContext -1
-            }
-            userService.sendConnectionRequest(
-                toUserId,
-                fromUser.userId
+                ?: return@withContext ResultResponse.Failed(Exception("Error in getting userId"))
+           return@withContext userService.sendConnectionRequest(
+                toUser.toUserSummaryDto(),
+                fromUser.toUserSummaryDto()
             )
         }
     }
@@ -209,19 +205,19 @@ class UserServiceRepositoryImpl @Inject constructor(
         val fromUser = getUser()
         if (fromUser == null) {
             Log.i(tempTag(), "Error in getting userId")
-            return@withContext emptyFlow<UserProfile>()
+            return@withContext emptyFlow<UserSummary>()
         }
         return@withContext userService.observeConnectionRequests(fromUser.userId).map {
-            it.toUserProfile()
+            it?.toUserSummary()
         }
     }
 
-    suspend fun acceptConnectionRequest(fromUser: UserSummary): Int {
+    suspend fun acceptConnectionRequest(fromUser: UserSummary): ResultResponse<Unit> {
         return withContext(Dispatchers.IO) {
             val toUser = getUser()
             if (toUser == null) {
                 Log.i(tempTag(), "Error in getting userId")
-                return@withContext -1
+                return@withContext ResultResponse.Failed(Exception("Error in getting userId"))
             }
             return@withContext userService.acceptConnectRequestAndCreateChat(
                 toUser.toUserSummaryDto(),
@@ -255,10 +251,5 @@ class UserServiceRepositoryImpl @Inject constructor(
         return withContext(Dispatchers.IO) {
             authService.logOut()
         }
-    }
-
-    suspend fun temp() {
-//        userService.createUser()
-//        appPrefs.edit().remove("user_id").apply()
     }
 }

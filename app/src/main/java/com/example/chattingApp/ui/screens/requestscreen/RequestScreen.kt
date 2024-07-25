@@ -38,7 +38,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.example.chattingApp.domain.model.UserProfile
+import com.example.chattingApp.domain.model.UserSummary
 import com.example.chattingApp.domain.model.tempUserProfile
+import com.example.chattingApp.domain.model.tempUserSummary
 import com.example.chattingApp.ui.BottomNavItem
 import com.example.chattingApp.ui.screens.profilescreen.ProfilePicture
 import com.example.chattingApp.ui.screens.profilescreen.SimpleScreenAppBar
@@ -104,13 +106,13 @@ fun RequestScreenContent(
     val requestedUsers = state.requestedUsers
     LazyColumn(modifier = modifier) {
         items(requestedUsers) { userProfile ->
-            requestUserCard(userProfile = userProfile, onEvent)
+            requestUserCard(userSummary = userProfile, onEvent)
         }
     }
 }
 
 @Composable
-fun requestUserCard(userProfile: UserProfile, onEvent: (RequestScreenEvent) -> Unit) {
+fun requestUserCard(userSummary: UserSummary, onEvent: (RequestScreenEvent) -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth(),
@@ -118,11 +120,11 @@ fun requestUserCard(userProfile: UserProfile, onEvent: (RequestScreenEvent) -> U
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(10.dp)) {
             ProfilePicture(
-                picUrl = userProfile.profileImageUrl,
+                picUrl = userSummary.profileImageUrl,
                 modifier = Modifier
                     .size(42.dp)
                     .clickable {
-                        onEvent(RequestScreenEvent.RequestedUserProfileClicked(userProfile.userId))
+                        onEvent(RequestScreenEvent.RequestedUserProfileClicked(userSummary.userId))
                     },
                 elevation = CardDefaults.elevatedCardElevation(2.dp),
                 shapes = CircleShape,
@@ -133,12 +135,12 @@ fun requestUserCard(userProfile: UserProfile, onEvent: (RequestScreenEvent) -> U
             )
             Spacer(modifier = Modifier.width(10.dp))
             Text(
-                text = (if (userProfile.name.isNullOrEmpty()) "Anonymous" else userProfile.name) + " wants to message you.",
+                text = (if (userSummary.name.isNullOrEmpty()) "Anonymous" else userSummary.name) + " wants to message you.",
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier
                     .weight(0.7f)
                     .clickable {
-                        onEvent(RequestScreenEvent.RequestedUserProfileClicked(userProfile.userId))
+                        onEvent(RequestScreenEvent.RequestedUserProfileClicked(userSummary.userId))
                     },
             )
             Row(
@@ -148,7 +150,7 @@ fun requestUserCard(userProfile: UserProfile, onEvent: (RequestScreenEvent) -> U
             ) {
                 OutlinedIconButton(
                     onClick = {
-                        onEvent(RequestScreenEvent.RejectRequest(userProfile.userId))
+                        onEvent(RequestScreenEvent.RejectRequest(userSummary.userId))
                     },
                     shape = CircleShape,
                     modifier = Modifier.size(26.dp)
@@ -166,7 +168,7 @@ fun requestUserCard(userProfile: UserProfile, onEvent: (RequestScreenEvent) -> U
                 OutlinedIconButton(
                     onClick = {
                         checkButtonClick.value = true
-                        onEvent(RequestScreenEvent.AcceptRequest(userProfile.toUserSummary()))
+                        onEvent(RequestScreenEvent.AcceptRequest(userSummary))
                     },
                     shape = CircleShape,
                     modifier = Modifier.size(26.dp)
@@ -190,7 +192,7 @@ fun requestUserCard(userProfile: UserProfile, onEvent: (RequestScreenEvent) -> U
 @Preview
 @Composable
 fun RequestScreenPreview() {
-    RequestScreen(state = RequestScreenState(List(10) { tempUserProfile })) {
+    RequestScreen(state = RequestScreenState(List(10) { tempUserSummary })) {
 
     }
 }

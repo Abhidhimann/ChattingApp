@@ -46,24 +46,43 @@ class ProfileScreenViewModel @Inject constructor(
     }
 
     private fun fetchUserProfile(userId: String) = viewModelScope.launch {
-        val userProfile = repository.getUserProfileDetails(userId)
-        state = state.copy(userProfile = userProfile)
+        state = state.copy(isLoading = true)
+        state = when (val userProfileResult = repository.getUserProfileDetails(userId)) {
+            is ResultResponse.Success -> {
+                state.copy(userProfile = userProfileResult.data, isLoading = false)
+            }
+
+            is ResultResponse.Failed -> {
+                state.copy(isLoading = false, errorMessage = "")
+            }
+        }
     }
 
     private fun fetchSelfProfile() = viewModelScope.launch {
-        val userProfile = repository.getSelfProfileDetails()
-        Log.i(tempTag(), "got user profile is $userProfile")
-        state = state.copy(userProfile = userProfile)
+        state = state.copy(isLoading = true)
+        state = when (val userProfileResult = repository.getSelfProfileDetails()) {
+            is ResultResponse.Success -> {
+                state.copy(userProfile = userProfileResult.data, isLoading = false)
+            }
+
+            is ResultResponse.Failed -> {
+                state.copy(isLoading = false, errorMessage = "")
+            }
+        }
     }
 
     private fun logOut() = viewModelScope.launch {
-        when(val result = repository.logOut()){
+        when (val result = repository.logOut()) {
             is ResultResponse.Success -> {
                 state = state.copy(isLogoutSuccess = true)
             }
+
             is ResultResponse.Failed -> {
                 Log.i(classTag(), "logout failed with ${result.exception}")
-                state = state.copy(isLogoutSuccess = false, errorMessage = "Some error occurred. Please try again later.")
+                state = state.copy(
+                    isLogoutSuccess = false,
+                    errorMessage = "Some error occurred. Please try again later."
+                )
             }
         }
     }

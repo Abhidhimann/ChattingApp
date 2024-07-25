@@ -51,6 +51,10 @@ class RequestScreenViewModel @Inject constructor(
         repository.observeIncomingRequests().catch { e ->
             Log.e(classTag(), "Error observing requests", e)
         }.collect { userProfile ->
+            if (userProfile == null){   // i.e. no incoming request
+                state = state.copy(requestedUsers = emptyList())
+                return@collect
+            }
             Log.i(classTag(), "got user profile from flow $userProfile")
             val updatedRequests = state.requestedUsers.toMutableList()
             val existingUserIndex = updatedRequests.indexOfFirst { it.userId == userProfile.userId }

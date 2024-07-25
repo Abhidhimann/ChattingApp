@@ -42,7 +42,7 @@ class EditProfileViewModel @Inject constructor(
 
             is EditProfileScreenEvent.UpdateUserPic -> {
                 Log.i(tempTag(), "new user pic is ${event.imageUri}")
-                uploadAndUpdateUserPic(event.imageUri)
+                uploadUserPic(event.imageUri)
             }
 
             else -> Unit
@@ -50,8 +50,16 @@ class EditProfileViewModel @Inject constructor(
     }
 
     private fun fetchSelfProfile() = viewModelScope.launch {
-        userProfile = repository.getSelfProfileDetails()
-        state = state.copy(userProfile = userProfile)
+        state = state.copy(isLoading = true)
+        state = when (val userProfileResult = repository.getSelfProfileDetails()) {
+            is ResultResponse.Success -> {
+                state.copy(userProfile = userProfileResult.data, isLoading = false)
+            }
+
+            is ResultResponse.Failed -> {
+                state.copy(isLoading = false)
+            }
+        }
     }
 
     private fun updateProfileDetails(userProfile: UserProfile) {
@@ -60,12 +68,20 @@ class EditProfileViewModel @Inject constructor(
         }
         viewModelScope.launch {
             Log.i(tempTag(), "updating user start")
-            val result = repository.updateUserProfile(userProfile)
-            state = state.copy(updatingResult = result == 1)
+            state = state.copy(isLoading = true)
+            state = when (val userProfileResult = repository.updateUserProfile(userProfile)) {
+                is ResultResponse.Success -> {
+                    state.copy(updatingResult = true, isLoading = false)
+                }
+
+                is ResultResponse.Failed -> {
+                    state.copy(updatingResult = false, isLoading = false)
+                }
+            }
         }
     }
 
-    private fun uploadAndUpdateUserPic(imageUri: Uri) {
+    private fun uploadUserPic(imageUri: Uri) {
         viewModelScope.launch {
             when (val result = repository.uploadUserPic(imageUri)) {
                 is ResultResponse.Success -> {
@@ -79,6 +95,7 @@ class EditProfileViewModel @Inject constructor(
 
                 is ResultResponse.Failed -> {
                     Log.i(classTag(), "Image upload failed ${result.exception}")
+                    state = state.copy(isImageUpdate = false)
                 }
             }
         }
