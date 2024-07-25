@@ -8,4 +8,5 @@ sealed class RequestScreenEvent {
     data class AcceptRequest(val userSummary: UserSummary): RequestScreenEvent()
     data class RejectRequest(val userId: String): RequestScreenEvent()
     data class RequestedUserProfileClicked(val userId: String): RequestScreenEvent()
+    data object ResetRequestStates: RequestScreenEvent()
 }

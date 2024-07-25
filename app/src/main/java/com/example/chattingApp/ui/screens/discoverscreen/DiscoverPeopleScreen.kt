@@ -23,10 +23,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -44,6 +46,7 @@ import com.example.chattingApp.ui.BottomNavItem
 import com.example.chattingApp.ui.screens.profilescreen.ProfilePicture
 
 import com.example.chattingApp.ui.screens.profilescreen.SimpleScreenAppBar
+import com.example.chattingApp.utils.ToastUtil
 import com.example.chattingApp.viewModel.DiscoverViewModel
 
 @Composable
@@ -51,7 +54,6 @@ fun DiscoverPeopleScreenRoot(navController: NavController) {
     val viewModel: DiscoverViewModel = hiltViewModel<DiscoverViewModel>()
     DiscoverPeopleScreen(state = viewModel.state) { event ->
         when (event) {
-            is DiscoverScreenEvent.MakeProfile -> navController.navigate("editProfileScreen")
             is DiscoverScreenEvent.OtherUserProfileClicked -> navController.navigate(
                 BottomNavItem.goToProfileRoute(
                     event.userId
@@ -70,7 +72,6 @@ fun DiscoverPeopleScreen(
     state: DiscoverScreenState,
     onEvent: (DiscoverScreenEvent) -> Unit
 ) {
-
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(key1 = lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -115,62 +116,21 @@ fun DiscoverPeopleScreenContent(
     onEvent: (DiscoverScreenEvent) -> Unit,
     modifier: Modifier
 ) {
-
-    val showChatTypeDialog = remember { mutableStateOf(true) }
-
-    if (!state.isUserProfileExists && showChatTypeDialog.value) {
-        ChatTypeAlertDialog(
-            onChatAnonymously = {
-                onEvent(DiscoverScreenEvent.ChatAnonymously)
-                onEvent(DiscoverScreenEvent.UpdateUserReadyToChatStatus(true))
-                showChatTypeDialog.value = false
-            },
-            onMakeProfile = {
-                onEvent(DiscoverScreenEvent.MakeProfile)
-                showChatTypeDialog.value = false
-            },
-            dialogText = "Would you like to chat anonymously or create a profile?",
-        )
+    val context = LocalContext.current.applicationContext
+    LaunchedEffect(state.isRequestSuccess) {
+        if (state.isRequestSuccess == true){
+            ToastUtil.shortToast(context, "Request Sent!")
+        } else if (state.isRequestSuccess == false){
+            ToastUtil.shortToast(context, "Some error occurred")
+        }
     }
+
     LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = modifier) {
         itemsIndexed(state.users) { index, userProfile ->
             UserDetailsCard(userProfile = userProfile, onEvent)
         }
     }
 }
-
-@Composable
-fun ChatTypeAlertDialog(
-    onChatAnonymously: () -> Unit,
-    onMakeProfile: () -> Unit,
-    dialogText: String,
-) {
-    AlertDialog(
-        text = {
-            Text(text = dialogText, style = MaterialTheme.typography.titleMedium)
-        },
-        onDismissRequest = { },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onMakeProfile()
-                }
-            ) {
-                Text("Make Profile")
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = {
-                    onChatAnonymously()
-                }
-            ) {
-                Text("Chat Anonymously")
-            }
-        }
-    )
-}
-
 
 @Composable
 fun UserDetailsCard(userProfile: UserProfile, onEvent: (DiscoverScreenEvent) -> Unit) {
@@ -216,6 +176,22 @@ fun UserDetailsCard(userProfile: UserProfile, onEvent: (DiscoverScreenEvent) -> 
     }
 //    }
 }
+
+//     val showChatTypeDialog = remember { mutableStateOf(true) }
+//if (!state.isUserProfileExists && showChatTypeDialog.value) {
+//    ChatTypeAlertDialog(
+//        onChatAnonymously = {
+//            onEvent(DiscoverScreenEvent.ChatAnonymously)
+//            onEvent(DiscoverScreenEvent.UpdateUserReadyToChatStatus(true))
+//            showChatTypeDialog.value = false
+//        },
+//        onMakeProfile = {
+//            onEvent(DiscoverScreenEvent.MakeProfile)
+//            showChatTypeDialog.value = false
+//        },
+//        dialogText = "Would you like to chat anonymously or create a profile?",
+//    )
+//}
 
 @Preview
 @Composable

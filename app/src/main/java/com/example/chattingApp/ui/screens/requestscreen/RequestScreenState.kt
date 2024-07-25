@@ -5,5 +5,7 @@ import com.example.chattingApp.domain.model.UserSummary
 
 data class RequestScreenState (
     var requestedUsers: List<UserSummary> = emptyList(),
-    val isLoading: Boolean = false
+    var isLoading: Boolean = false,
+    var isRequestAccepted: Boolean? = null,
+    var isRequestDenied: Boolean? = null,
 )

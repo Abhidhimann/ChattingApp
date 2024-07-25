@@ -84,7 +84,7 @@ fun SignInScreen(state: SignInScreenState, onEvent: (SignInScreenEvent) -> Unit)
         topBar = {},
         modifier = Modifier.fillMaxSize(),
     ) {
-        SimpleLoadingScreen(isLoading = state.isLoading) {
+        SimpleLoadingScreen(modifier = Modifier.fillMaxSize(), isLoading = state.isLoading) {
             SignInScreenContent(
                 state = state,
                 modifier = Modifier.padding(it),

@@ -87,7 +87,7 @@ fun SignUpScreen(state: SignUpScreenState, onEvent: (SignUpScreenEvent) -> Unit)
         },
         modifier = Modifier.fillMaxSize(),
     ) {
-        SimpleLoadingScreen(isLoading = state.isLoading, loadingText = { Text(text = "loading") }) {
+        SimpleLoadingScreen(modifier = Modifier.fillMaxSize(), isLoading = true) {
             SignUpScreenContent(
                 modifier = Modifier.padding(it), state, onEvent
             )

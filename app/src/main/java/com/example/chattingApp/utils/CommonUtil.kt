@@ -7,6 +7,7 @@ import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -14,9 +15,11 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -80,24 +83,24 @@ fun SpannableString(
 @Composable
 fun SimpleLoadingScreen(
     isLoading: Boolean,
+    modifier: Modifier,
     loadingText: @Composable ColumnScope.() -> Unit = { Text(text = "Loading") },
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(
-        modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center,
     ) {
         content()
         if (isLoading) {
             Box(
-                modifier = Modifier
+                modifier = modifier
                     .background(Color.Gray.copy(alpha = 0.7f))
-                    .fillMaxSize()
             )
 
             Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
                 CircularProgressIndicator()
                 loadingText()
@@ -167,6 +170,38 @@ fun getTempFile(context: Context, suffix: String, fileName: String): File {
             deleteOnExit()
         }
     return tempFile
+}
+
+@Composable
+fun ChatTypeAlertDialog(
+    onChatAnonymously: () -> Unit,
+    onMakeProfile: () -> Unit,
+    dialogText: String,
+) {
+    AlertDialog(
+        text = {
+            Text(text = dialogText, style = MaterialTheme.typography.titleMedium)
+        },
+        onDismissRequest = { },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onMakeProfile()
+                }
+            ) {
+                Text("Make Profile")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    onChatAnonymously()
+                }
+            ) {
+                Text("Chat Anonymously")
+            }
+        }
+    )
 }
 
 

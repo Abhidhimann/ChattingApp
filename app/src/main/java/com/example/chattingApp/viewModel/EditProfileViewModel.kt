@@ -83,19 +83,20 @@ class EditProfileViewModel @Inject constructor(
 
     private fun uploadUserPic(imageUri: Uri) {
         viewModelScope.launch {
-            when (val result = repository.uploadUserPic(imageUri)) {
+            state = state.copy(isImageUploading = true)
+            state = when (val result = repository.uploadUserPic(imageUri)) {
                 is ResultResponse.Success -> {
                     Log.i(classTag(), "Image upload successful ${result.data}")
                     val updatedUserProfile = state.userProfile
                     Log.i(classTag(), "previous user $updatedUserProfile")
                     updatedUserProfile?.profileImageUrl = result.data
                     Log.i(classTag(), "updated user $updatedUserProfile")
-                    state = state.copy(userProfile = updatedUserProfile, isImageUpdate = true)
+                    state.copy(imageUploadingResult = true, isImageUploading = false)
                 }
 
                 is ResultResponse.Failed -> {
                     Log.i(classTag(), "Image upload failed ${result.exception}")
-                    state = state.copy(isImageUpdate = false)
+                    state.copy(isImageUploading = false, imageUploadingResult = false)
                 }
             }
         }

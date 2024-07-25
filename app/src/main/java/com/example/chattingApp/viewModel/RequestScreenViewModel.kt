@@ -10,7 +10,9 @@ import com.example.chattingApp.domain.model.UserSummary
 import com.example.chattingApp.data.repository.UserServiceRepositoryImpl
 import com.example.chattingApp.ui.screens.requestscreen.RequestScreenEvent
 import com.example.chattingApp.ui.screens.requestscreen.RequestScreenState
+import com.example.chattingApp.utils.ResultResponse
 import com.example.chattingApp.utils.classTag
+import com.example.chattingApp.utils.tempTag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
@@ -29,29 +31,53 @@ class RequestScreenViewModel @Inject constructor(
             is RequestScreenEvent.ObserveRequestUsers -> {
                 observeIncomingConnectionRequests()
             }
+
             is RequestScreenEvent.RejectRequest -> {
                 rejectConnectionRequest(event.userId)
             }
+
             is RequestScreenEvent.AcceptRequest -> {
                 acceptConnectionRequest(event.userSummary)
             }
+
+            is RequestScreenEvent.ResetRequestStates -> {
+                state = state.copy(isRequestDenied = null, isRequestAccepted = null)
+            }
+
             else -> {}
         }
     }
 
     private fun rejectConnectionRequest(userId: String) = viewModelScope.launch {
-        repository.removeConnectionRequestBySelf(userId)
+        state = when (repository.removeConnectionRequestBySelf(userId)) {
+            is ResultResponse.Success -> {
+                Log.i(tempTag(), "coming here")
+                state.copy(isRequestDenied = true)
+            }
+
+            is ResultResponse.Failed -> {
+                state.copy(isRequestDenied = false)
+            }
+        }
     }
 
     private fun acceptConnectionRequest(userSummary: UserSummary) = viewModelScope.launch {
-        repository.acceptConnectionRequest(userSummary)
+        state = when (repository.acceptConnectionRequest(userSummary)) {
+            is ResultResponse.Success -> {
+                state.copy(isRequestAccepted = true)
+            }
+
+            is ResultResponse.Failed -> {
+                state.copy(isRequestAccepted = false)
+            }
+        }
     }
 
     private fun observeIncomingConnectionRequests() = viewModelScope.launch {
         repository.observeIncomingRequests().catch { e ->
             Log.e(classTag(), "Error observing requests", e)
         }.collect { userProfile ->
-            if (userProfile == null){   // i.e. no incoming request
+            if (userProfile == null) {   // i.e. no incoming request
                 state = state.copy(requestedUsers = emptyList())
                 return@collect
             }

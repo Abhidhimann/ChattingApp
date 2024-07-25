@@ -249,7 +249,7 @@ fun ProfilePicture(
     ) {
         // will use glide
         Image(
-            painter = if (picUrl.isNullOrEmpty()) painterResource(id = R.drawable.dog_pic) else rememberAsyncImagePainter(
+            painter = if (picUrl.isNullOrEmpty()) painterResource(id = R.drawable.user_default_pic) else rememberAsyncImagePainter(
                 model = picUrl
             ),
             contentDescription = "ProfilePicture",

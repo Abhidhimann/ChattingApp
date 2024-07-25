@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.style.TextAlign
@@ -35,6 +36,7 @@ import com.example.chattingApp.domain.model.tempUserProfile
 import com.example.chattingApp.ui.BottomNavItem
 import com.example.chattingApp.ui.screens.profilescreen.ProfilePicture
 import com.example.chattingApp.ui.screens.profilescreen.SimpleScreenAppBar
+import com.example.chattingApp.utils.SimpleLoadingScreen
 import com.example.chattingApp.utils.ToastUtil
 import com.example.chattingApp.utils.Validation.validateName
 import com.example.chattingApp.utils.rememberImagePickerLauncher
@@ -123,10 +125,20 @@ fun EditProfileContent(
             ToastUtil.shortToast(context, "Update failed, please try again later")
         }
     }
-    var nameError by remember { mutableStateOf(Pair(false, "")) }
+
+    LaunchedEffect(state.imageUploadingResult) {
+        if (state.imageUploadingResult == true) {
+//            ToastUtil.shortToast(context, "Image upload Successful")
+        } else if (state.imageUploadingResult == false) {
+            ToastUtil.shortToast(context, "Image upload failed, please try again later")
+        }
+    }
+
     LaunchedEffect(userProfile) {
         updateUserProfile = userProfile
     }
+
+    var nameError by remember { mutableStateOf(Pair(false, "")) }
 
     val imagePickerLauncher = rememberImagePickerLauncher { uri ->
         uri?.let {
@@ -141,21 +153,29 @@ fun EditProfileContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        ProfilePicture(
-            userProfile?.profileImageUrl, modifier = Modifier
-                .padding(4.dp)
+        SimpleLoadingScreen(
+            modifier = Modifier
                 .size(240.dp)
                 .padding(4.dp)
-                .clickable {
-                    imagePickerLauncher.launch("image/*")
-                },
-            elevation = CardDefaults.elevatedCardElevation(0.dp),
-            shapes = CircleShape,
-            border = BorderStroke(
-                width = 2.dp,
-                color = MaterialTheme.colorScheme.primary
+                .clip(CircleShape),
+            isLoading = state.isImageUploading
+        ) {
+            ProfilePicture(
+                userProfile?.profileImageUrl, modifier = Modifier
+                    .padding(4.dp)
+                    .size(240.dp)
+                    .padding(4.dp)
+                    .clickable {
+                        imagePickerLauncher.launch("image/*")
+                    },
+                elevation = CardDefaults.elevatedCardElevation(0.dp),
+                shapes = CircleShape,
+                border = BorderStroke(
+                    width = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
             )
-        )
+        }
 
         OutlinedTextField(
             value = updateUserProfile?.name ?: "",
@@ -271,10 +291,14 @@ fun EditProfileContent(
             Button(
                 onClick = {
                     if (updateUserProfile == null) {
+                        return@Button
                         // todo toast
-                    } else {
-                        onEvent(EditProfileScreenEvent.UpdateProfileDetails(updateUserProfile!!))
                     }
+                    if (state.isImageUploading) {
+                        ToastUtil.shortToast(context, "Please wait image is uploading")
+                        return@Button
+                    }
+                    onEvent(EditProfileScreenEvent.UpdateProfileDetails(updateUserProfile!!))
                 },
                 modifier = Modifier
                     .weight(1f)

@@ -26,10 +26,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -44,6 +46,7 @@ import com.example.chattingApp.domain.model.tempUserSummary
 import com.example.chattingApp.ui.BottomNavItem
 import com.example.chattingApp.ui.screens.profilescreen.ProfilePicture
 import com.example.chattingApp.ui.screens.profilescreen.SimpleScreenAppBar
+import com.example.chattingApp.utils.ToastUtil
 import com.example.chattingApp.viewModel.RequestScreenViewModel
 
 @Composable
@@ -103,16 +106,36 @@ fun RequestScreenContent(
     state: RequestScreenState,
     onEvent: (RequestScreenEvent) -> Unit
 ) {
+    val context = LocalContext.current.applicationContext
+    LaunchedEffect(state.isRequestAccepted) {
+        if (state.isRequestAccepted == true){
+            ToastUtil.shortToast(context, "Request accepted")
+        } else if (state.isRequestAccepted == false){
+            ToastUtil.shortToast(context, "Some error occurred")
+        }
+//        if (state.isRequestDenied == true){
+//            ToastUtil.shortToast(context, "Request successfully denied")
+//        } else if (state.isRequestDenied == false){
+//            ToastUtil.shortToast(context, "Some error occurred")
+//        }
+    }
+    LaunchedEffect(state.isRequestDenied) {
+        if (state.isRequestDenied == true){
+            ToastUtil.shortToast(context, "Request denied")
+        } else if (state.isRequestDenied == false){
+            ToastUtil.shortToast(context, "Some error occurred")
+        }
+    }
     val requestedUsers = state.requestedUsers
     LazyColumn(modifier = modifier) {
         items(requestedUsers) { userProfile ->
-            requestUserCard(userSummary = userProfile, onEvent)
+            RequestUserCard(userSummary = userProfile, onEvent)
         }
     }
 }
 
 @Composable
-fun requestUserCard(userSummary: UserSummary, onEvent: (RequestScreenEvent) -> Unit) {
+fun RequestUserCard(userSummary: UserSummary, onEvent: (RequestScreenEvent) -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth(),

@@ -6,5 +6,6 @@ data class EditProfileScreenState(
     var userProfile: UserProfile? = null,
     val isLoading: Boolean = false,
     var updatingResult: Boolean? = null,
-    var isImageUpdate: Boolean? = null
+    var isImageUploading: Boolean = false,
+    var imageUploadingResult: Boolean? = null
 )

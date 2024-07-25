@@ -27,20 +27,13 @@ class DiscoverViewModel @Inject constructor(
     var state by mutableStateOf(DiscoverScreenState())
         private set
 
-    init {
-        isUserProfileExists()
-//        createUserIfNotExists()
-    }
+//    init {
+//        isUserProfileExists()
+//    }
 
     fun onEvent(event: DiscoverScreenEvent) {
         when (event) {
             is DiscoverScreenEvent.ObserveUsers -> observeNonConnectedUsers()
-            is DiscoverScreenEvent.temp -> {}
-            is DiscoverScreenEvent.UpdateUserReadyToChatStatus -> {
-                updateUserOnlineStatus(
-                    event.value
-                )
-            }
 
             is DiscoverScreenEvent.ConnectToUser -> {
                 sendConnectionRequest(event.user)
@@ -50,13 +43,17 @@ class DiscoverViewModel @Inject constructor(
                 removeConnectionRequest(event.user)
             }
 
+            is DiscoverScreenEvent.ResetRequestStatus -> {
+                state = state.copy(isRequestSuccess = null)
+            }
+
             else -> {}
         }
     }
 
     private fun sendConnectionRequest(toUser: UserProfile) = viewModelScope.launch {
-        val sendRequestDeff = repository.sendConnectionRequest(toUser.toUserSummary())
-        when (val result = sendRequestDeff) {
+        val sendRequest = repository.sendConnectionRequest(toUser.toUserSummary())
+        when (sendRequest) {
             is ResultResponse.Failed -> {
 
             }
@@ -73,7 +70,7 @@ class DiscoverViewModel @Inject constructor(
                     updatedUsers.remove(toUser)
                 }
                 Log.i(tempTag(), "after $updatedUsers")
-                state = state.copy(users = updatedUsers)
+                state = state.copy(users = updatedUsers, isRequestSuccess = true)
                 Log.i(tempTag(), "state after update: $state")
             }
         }
@@ -104,13 +101,9 @@ class DiscoverViewModel @Inject constructor(
     private fun isUserProfileExists() = viewModelScope.launch {
         val result = repository.isUserProfileExists()
         Log.i(tempTag(), "user profile exists: $result")
-        state = state.copy(isUserProfileExists = result)
+//        state = state.copy(isUserProfileExists = result)
     }
 
-    private fun updateUserOnlineStatus(value: Boolean) =
-        viewModelScope.launch {
-//            repository.updateUserOnlineStatus(value)
-        }
 
 //    private fun temp() = viewModelScope.launch {
 //        repository.temp()

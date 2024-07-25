@@ -193,7 +193,7 @@ class UserServiceRepositoryImpl @Inject constructor(
             val fromUser = getUser()
             if (fromUser == null) {
                 Log.i(tempTag(), "Error in getting userId")
-                return@withContext
+                return@withContext ResultResponse.Failed(Exception("Error in getting userId"))
             }
             userService.removeConnectRequest(
                 fromUser.userId,
@@ -239,9 +239,9 @@ class UserServiceRepositoryImpl @Inject constructor(
                 Log.i(classTag(), "unable to compress image uri is null")
                 return@withContext ResultResponse.Failed(Exception("unable to compress image uri is null"))
             }
-//            return@withContext ResultResponse.Failed(Exception("unable to compress image uri is null"))
+            // user all files we will keep at userPictures/userId folder
             return@withContext imageService.uploadImageToFirebaseStorage(
-                "userPictures/${fromUser.userId}",
+                "userPictures/${fromUser.userId}/${fromUser.userId}",
                 resultUri
             )
         }
