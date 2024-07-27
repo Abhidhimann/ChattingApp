@@ -30,7 +30,7 @@ class ProfileScreenViewModel @Inject constructor(
                 Log.i(tempTag(), "coming here ${event.userId}")
                 // todo navigation needs updation, I guess in new library we don't need that
                 // plus event.userId could not be null default value will be userId always
-                if (event.userId == null || event.userId == "{userId}") {
+                if (event.userId.isEmpty()) {
                     fetchSelfProfile()
                 } else {
                     fetchUserProfile(userId = event.userId)

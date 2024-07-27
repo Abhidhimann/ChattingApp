@@ -4,7 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.chattingApp.ui.screens.StartLoadingScreen
+import com.example.chattingApp.ui.screens.Screen
+import com.example.chattingApp.ui.screens.splashscreen.StartUpLoading
 import com.example.chattingApp.ui.screens.chatlistscreen.ChatListScreenRoot
 import com.example.chattingApp.ui.screens.chatscreen.ChatScreenRoot
 import com.example.chattingApp.ui.screens.discoverscreen.DiscoverPeopleScreenRoot
@@ -18,23 +19,34 @@ import com.example.chattingApp.ui.screens.signupscreen.SignUpScreenRoot
 @Composable
 fun NavigationHost(navController: NavHostController, startDestination: String) {
     NavHost(navController, startDestination = startDestination) {
-        composable(route = BottomNavItem.CHAT_LIST.route) { ChatListScreenRoot(navController = navController) }
-        composable(route = BottomNavItem.CONNECT.route) { DiscoverPeopleScreenRoot(navController) }
-        composable(route = BottomNavItem.REQUEST.route) { RequestScreenRoot(navController) }
-        composable(route = BottomNavItem.PROFILE.route) { backStackEntry ->
+        composable(route = Screen.ChatList.route) { ChatListScreenRoot(navController = navController) }
+        composable(route = Screen.Discover.route) { DiscoverPeopleScreenRoot(navController) }
+        composable(route = Screen.Requests.route) { RequestScreenRoot(navController) }
+        composable(
+            route = Screen.Profile.route,
+            arguments = Screen.Profile.navArguments
+        ) { backStackEntry ->
             val userId = backStackEntry.arguments?.getString("userId")
-            ProfileScreenRoot(navController = navController, userId = userId)
+            userId?.let {
+                ProfileScreenRoot(navController = navController, userId = it)
+            }
         }
-
-        composable(route = "chatScreen/{chatId}") { backStackEntry ->
-            val chatId: String = backStackEntry.arguments!!.getString("chatId")!!
-            ChatScreenRoot(chatId, navController)
+        composable(
+            route = Screen.Chat.route,
+            arguments = Screen.Chat.navArguments
+        ) { backStackEntry ->
+            val chatId = backStackEntry.arguments?.getString("chatId")
+            chatId?.let {
+                ChatScreenRoot(it, navController)
+            }
         }
-        composable(route = "editProfileScreen") { EditProfileScreenRoot(navController) }
-        composable(route = "signInScreen") { SignInScreenRoot(navController) }
-        composable(route = "signUpScreen") { SignUpScreenRoot(navController) }
-        composable(route = "forgotPasswordScreen") { ForgotPasswordScreenRoot(navController) }
-        composable(route = "startLoadingScreen") { StartLoadingScreen() }
+        composable(route = Screen.EditProfile.route) { EditProfileScreenRoot(navController) }
+        composable(route = Screen.SignIn.route) { SignInScreenRoot(navController) }
+        composable(route = Screen.SignUp.route) { SignUpScreenRoot(navController) }
+        composable(route = Screen.ForgotPassword.route) { ForgotPasswordScreenRoot(navController) }
+        composable(route = Screen.StartUp.route) {
+            StartUpLoading()
+        }
     }
 }
 

@@ -97,6 +97,8 @@ class ChatViewModel @Inject constructor(
                 // later replace it by db call
                 getConversationDetails(event.conversationId)
             }
+
+            else -> Unit
         }
     }
 }

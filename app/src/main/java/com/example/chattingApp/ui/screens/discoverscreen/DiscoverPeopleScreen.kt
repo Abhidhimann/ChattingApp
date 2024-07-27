@@ -43,6 +43,7 @@ import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.domain.model.UserRelation
 import com.example.chattingApp.domain.model.tempUserProfile
 import com.example.chattingApp.ui.BottomNavItem
+import com.example.chattingApp.ui.screens.Screen
 import com.example.chattingApp.ui.screens.profilescreen.ProfilePicture
 
 import com.example.chattingApp.ui.screens.profilescreen.SimpleScreenAppBar
@@ -55,7 +56,7 @@ fun DiscoverPeopleScreenRoot(navController: NavController) {
     DiscoverPeopleScreen(state = viewModel.state) { event ->
         when (event) {
             is DiscoverScreenEvent.OtherUserProfileClicked -> navController.navigate(
-                BottomNavItem.goToProfileRoute(
+                Screen.Profile.createRoute(
                     event.userId
                 )
             )
@@ -118,9 +119,9 @@ fun DiscoverPeopleScreenContent(
 ) {
     val context = LocalContext.current.applicationContext
     LaunchedEffect(state.isRequestSuccess) {
-        if (state.isRequestSuccess == true){
+        if (state.isRequestSuccess == true) {
             ToastUtil.shortToast(context, "Request Sent!")
-        } else if (state.isRequestSuccess == false){
+        } else if (state.isRequestSuccess == false) {
             ToastUtil.shortToast(context, "Some error occurred")
         }
     }

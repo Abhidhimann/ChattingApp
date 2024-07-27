@@ -2,6 +2,7 @@ package com.example.chattingApp.ui.screens.chatscreen
 
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +21,8 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,7 +54,7 @@ import androidx.navigation.NavController
 import com.example.chattingApp.domain.model.Message
 import com.example.chattingApp.domain.model.MessageType
 import com.example.chattingApp.domain.model.tempMessageList
-import com.example.chattingApp.ui.screens.chatlistscreen.ChatScreenAppBar
+import com.example.chattingApp.utils.CenterAlignedCommonAppBar
 import com.example.chattingApp.utils.tempTag
 import com.example.chattingApp.viewModel.ChatViewModel
 
@@ -61,7 +64,15 @@ fun ChatScreenRoot(chatId: String, navController: NavController) {
     val viewModel: ChatViewModel = hiltViewModel<ChatViewModel>()
 
     // if action is in ui then handle by lamba function in ui ( live navigation)
-    ChatScreen(chatId = chatId, state = viewModel.state, onEvent = viewModel::onEvent)
+    ChatScreen(chatId = chatId, state = viewModel.state) { event ->
+        when (event) {
+            is ChatScreenEvent.OnBackButtonPressed -> {
+                navController.popBackStack()
+            }
+
+            else -> viewModel.onEvent(event)
+        }
+    }
 }
 
 @Composable
@@ -84,7 +95,16 @@ fun ChatScreen(chatId: String, state: ChatScreenState, onEvent: (ChatScreenEvent
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            ChatScreenAppBar(title = "Messages") {}
+            // todo later replace title by name
+            CenterAlignedCommonAppBar(title = "Messages", leftIcon = {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    "Back",
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp)
+                        .clickable(onClick = { onEvent(ChatScreenEvent.OnBackButtonPressed) })
+                )
+            }, actions = { })
         },
     ) { innerPadding ->
         ChatContent(

@@ -1,5 +1,7 @@
 package com.example.chattingApp.ui.screens.signin
 
+import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -50,6 +52,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.chattingApp.R
 import com.example.chattingApp.ui.BottomNavItem
+import com.example.chattingApp.ui.screens.Screen
 import com.example.chattingApp.utils.SimpleLoadingScreen
 import com.example.chattingApp.utils.SpannableString
 import com.example.chattingApp.utils.ToastUtil
@@ -59,18 +62,27 @@ import com.example.chattingApp.viewModel.SignInViewModel
 @Composable
 fun SignInScreenRoot(navController: NavController) {
     val viewModel: SignInViewModel = hiltViewModel<SignInViewModel>()
+    val context = LocalContext.current
+    BackHandler {
+        (context as? Activity)?.finishAffinity()
+    }
     SignInScreen(viewModel.state) { event ->
         when (event) {
             is SignInScreenEvent.RegisterUser -> {
-                navController.navigate("signUpScreen")
+                navController.navigate(Screen.SignUp.route)
             }
 
             is SignInScreenEvent.ForgotPassword -> {
-                navController.navigate("forgotPasswordScreen")
+                navController.navigate(Screen.ForgotPassword.route)
             }
 
             is SignInScreenEvent.AfterSignIn -> {
-                navController.navigate(BottomNavItem.PROFILE.route)
+                navController.navigate(BottomNavItem.PROFILE.route) {
+                    popUpTo(Screen.SignIn.route) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
             }
 
             else -> viewModel.onEvent(event)

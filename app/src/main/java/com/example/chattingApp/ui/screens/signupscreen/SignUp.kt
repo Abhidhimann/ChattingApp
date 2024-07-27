@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.chattingApp.ui.screens.Screen
 import com.example.chattingApp.ui.screens.profilescreen.SimpleScreenAppBar
 import com.example.chattingApp.utils.SimpleLoadingScreen
 import com.example.chattingApp.utils.SpannableString
@@ -60,7 +61,11 @@ fun SignUpScreenRoot(navController: NavController) {
     SignUpScreen(viewModel.state) { event ->
         when (event) {
             is SignUpScreenEvent.Login -> {
-                navController.navigate("signInScreen")
+                navController.navigate(Screen.SignIn.route)
+            }
+            
+            is SignUpScreenEvent.OnBackPressed -> {
+                navController.popBackStack()
             }
 
             else -> viewModel.onEvent(event)
@@ -80,14 +85,14 @@ fun SignUpScreen(state: SignUpScreenState, onEvent: (SignUpScreenEvent) -> Unit)
                         "Back",
                         modifier = Modifier
                             .padding(horizontal = 12.dp)
-                            .clickable(onClick = { onEvent(SignUpScreenEvent.Login) })
+                            .clickable(onClick = { onEvent(SignUpScreenEvent.OnBackPressed) })
                     )
                 }
             )
         },
         modifier = Modifier.fillMaxSize(),
     ) {
-        SimpleLoadingScreen(modifier = Modifier.fillMaxSize(), isLoading = true) {
+        SimpleLoadingScreen(modifier = Modifier.fillMaxSize(), isLoading = state.isLoading) {
             SignUpScreenContent(
                 modifier = Modifier.padding(it), state, onEvent
             )

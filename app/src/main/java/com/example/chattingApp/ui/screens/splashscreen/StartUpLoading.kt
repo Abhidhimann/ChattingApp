@@ -1,4 +1,4 @@
-package com.example.chattingApp.ui.screens
+package com.example.chattingApp.ui.screens.splashscreen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -11,10 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.chattingApp.R
-import com.example.chattingApp.ui.screens.signin.SignInScreenPreview
 
 @Composable
-fun StartLoadingScreen() {
+fun StartUpLoading() {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -29,5 +28,5 @@ fun StartLoadingScreen() {
 @Preview
 @Composable
 fun StartLoadingScreenPreview() {
-    StartLoadingScreen()
+    StartUpLoading()
 }

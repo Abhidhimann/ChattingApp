@@ -36,6 +36,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,17 +64,28 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.chattingApp.R
 import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.domain.model.tempUserProfile
+import com.example.chattingApp.ui.screens.Screen
+import com.example.chattingApp.ui.screens.forgotpassword.ForgotPasswordEvent
 import com.example.chattingApp.utils.ToastUtil
 import com.example.chattingApp.viewModel.ProfileScreenViewModel
 
 @Composable
-fun ProfileScreenRoot(userId: String?, navController: NavController) {
+fun ProfileScreenRoot(userId: String, navController: NavController) {
     val viewModel: ProfileScreenViewModel = hiltViewModel<ProfileScreenViewModel>()
     ProfileScreen(userId = userId, state = viewModel.state) { event ->
         when (event) {
             is ProfileScreenEvent.EditProfile -> {
-                navController.navigate("editProfileScreen")
+                navController.navigate(Screen.EditProfile.route)
             }
+
+            is ProfileScreenEvent.OnBackPressed -> {
+                navController.popBackStack()
+            }
+
+//            is ProfileScreenEvent.LogOut -> {
+//                navController.clearBackStack(navController.graph.id)
+//                viewModel.onEvent(event)
+//            }
 
             else -> {
                 viewModel.onEvent(event)
@@ -84,10 +96,11 @@ fun ProfileScreenRoot(userId: String?, navController: NavController) {
 
 @Composable
 fun ProfileScreen(
-    userId: String?,
+    userId: String,
     state: ProfileScreenState,
     onEvent: (ProfileScreenEvent) -> Unit
 ) {
+    val context = LocalContext.current.applicationContext
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(key1 = lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -105,10 +118,12 @@ fun ProfileScreen(
         }
     }
 
-    if (state.isLogoutSuccess == false) {
-        ToastUtil.shortToast(LocalContext.current.applicationContext, "Some error occurred. Please try again later.")
-    } else if (state.isLogoutSuccess == true){
-        ToastUtil.shortToast(LocalContext.current.applicationContext, "Sign out successfully")
+    LaunchedEffect(state.isLogoutSuccess) {
+        if (state.isLogoutSuccess == false) {
+            ToastUtil.shortToast(context, "Some error occurred. Please try again later.")
+        } else if (state.isLogoutSuccess == true) {
+            ToastUtil.shortToast(context, "Sign out successfully")
+        }
     }
 
     val userProfile = state.userProfile
@@ -118,13 +133,15 @@ fun ProfileScreen(
                 title = "Profile",
                 menuActions = { UserProfileMenuActions(onEvent) },
                 navigationIcon = {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        "Back",
-                        modifier = Modifier
-                            .padding(horizontal = 12.dp)
-                            .clickable(onClick = {})
-                    )
+                    if (userId.isNotEmpty()) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            "Back",
+                            modifier = Modifier
+                                .padding(horizontal = 12.dp)
+                                .clickable(onClick = { onEvent(ProfileScreenEvent.OnBackPressed) })
+                        )
+                    }
                 }
             )
         },
@@ -205,9 +222,10 @@ fun ProfileScreenContent(userProfile: UserProfile?, modifier: Modifier = Modifie
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
                         bottom.linkTo(profileDetails.top)
-                        height = Dimension.percent(0.7f)
+                        height = Dimension.wrapContent
                     }
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .height(400.dp),
                 elevation = CardDefaults.elevatedCardElevation(8.dp),
                 shapes = RoundedCornerShape(10.dp),
                 border = BorderStroke(
@@ -309,7 +327,9 @@ fun ProfileDetails(
         Card(
             colors = CardDefaults.cardColors(contentColor = Color.Black),
             shape = RoundedCornerShape(10.dp),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .padding(start = 2.dp, end = 2.dp)
+                .fillMaxWidth(),
             elevation = CardDefaults.elevatedCardElevation(2.dp)
         ) {
             Text(
@@ -326,7 +346,9 @@ fun ProfileDetails(
         Card(
             colors = CardDefaults.cardColors(contentColor = Color.Black),
             shape = RoundedCornerShape(10.dp),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .padding(start = 2.dp, end = 2.dp)
+                .fillMaxWidth(),
             elevation = CardDefaults.cardElevation(2.dp)
         ) {
             Text(

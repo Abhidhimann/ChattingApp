@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.chattingApp.ui.screens.Screen
 import com.example.chattingApp.ui.screens.profilescreen.SimpleScreenAppBar
 import com.example.chattingApp.ui.screens.signupscreen.SignUpScreenEvent
 import com.example.chattingApp.ui.screens.signupscreen.SignUpScreenState
@@ -55,8 +56,8 @@ fun ForgotPasswordScreenRoot(navController: NavController) {
     val viewModel: ForgotPasswordViewModel = hiltViewModel<ForgotPasswordViewModel>()
     ForgotPasswordScreen(ForgotPasswordState()) { event ->
         when (event) {
-            is ForgotPasswordEvent.Login -> {
-                navController.navigate("signInScreen")
+            is ForgotPasswordEvent.OnBackPressed -> {
+                navController.popBackStack()
             }
 
             else -> viewModel.onEvent(event)
@@ -76,7 +77,7 @@ fun ForgotPasswordScreen(state: ForgotPasswordState, onEvent: (ForgotPasswordEve
                         "Back",
                         modifier = Modifier
                             .padding(horizontal = 12.dp)
-                            .clickable(onClick = { onEvent(ForgotPasswordEvent.Login) })
+                            .clickable(onClick = { onEvent(ForgotPasswordEvent.OnBackPressed) })
                     )
                 }
             )

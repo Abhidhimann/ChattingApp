@@ -44,6 +44,7 @@ import com.example.chattingApp.domain.model.UserSummary
 import com.example.chattingApp.domain.model.tempUserProfile
 import com.example.chattingApp.domain.model.tempUserSummary
 import com.example.chattingApp.ui.BottomNavItem
+import com.example.chattingApp.ui.screens.Screen
 import com.example.chattingApp.ui.screens.profilescreen.ProfilePicture
 import com.example.chattingApp.ui.screens.profilescreen.SimpleScreenAppBar
 import com.example.chattingApp.utils.ToastUtil
@@ -55,7 +56,7 @@ fun RequestScreenRoot(navController: NavController) {
     RequestScreen(state = viewModel.state) { event ->
         when (event) {
             is RequestScreenEvent.RequestedUserProfileClicked -> navController.navigate(
-                BottomNavItem.goToProfileRoute(
+                Screen.Profile.createRoute(
                     event.userId
                 )
             )
@@ -108,9 +109,9 @@ fun RequestScreenContent(
 ) {
     val context = LocalContext.current.applicationContext
     LaunchedEffect(state.isRequestAccepted) {
-        if (state.isRequestAccepted == true){
+        if (state.isRequestAccepted == true) {
             ToastUtil.shortToast(context, "Request accepted")
-        } else if (state.isRequestAccepted == false){
+        } else if (state.isRequestAccepted == false) {
             ToastUtil.shortToast(context, "Some error occurred")
         }
 //        if (state.isRequestDenied == true){
@@ -120,9 +121,9 @@ fun RequestScreenContent(
 //        }
     }
     LaunchedEffect(state.isRequestDenied) {
-        if (state.isRequestDenied == true){
+        if (state.isRequestDenied == true) {
             ToastUtil.shortToast(context, "Request denied")
-        } else if (state.isRequestDenied == false){
+        } else if (state.isRequestDenied == false) {
             ToastUtil.shortToast(context, "Some error occurred")
         }
     }

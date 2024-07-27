@@ -34,6 +34,7 @@ import com.example.chattingApp.domain.model.UserGender
 import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.domain.model.tempUserProfile
 import com.example.chattingApp.ui.BottomNavItem
+import com.example.chattingApp.ui.screens.Screen
 import com.example.chattingApp.ui.screens.profilescreen.ProfilePicture
 import com.example.chattingApp.ui.screens.profilescreen.SimpleScreenAppBar
 import com.example.chattingApp.utils.SimpleLoadingScreen
@@ -48,7 +49,7 @@ fun EditProfileScreenRoot(navController: NavController) {
     val viewModel: EditProfileViewModel = hiltViewModel<EditProfileViewModel>()
     EditProfileScreenContent(state = viewModel.state) { event ->
         when (event) {
-            is EditProfileScreenEvent.CancelOrBack -> navController.navigate(BottomNavItem.goToProfileRoute())
+            is EditProfileScreenEvent.CancelOrBack -> navController.popBackStack()
             else -> {
                 viewModel.onEvent(event)
             }
@@ -205,13 +206,23 @@ fun EditProfileContent(
         OutlinedTextField(
             value = updateUserProfile?.aboutMe ?: "",
             onValueChange = {
-                if (it.length < maxAboutMeLength) updateUserProfile =
-                    updateUserProfile?.copy(aboutMe = it)
+                if (it.length > maxAboutMeLength) {
+                    return@OutlinedTextField
+                }
+                val lines = it.split("\n")
+                val text = if (lines.size <= 3) {
+                    it
+                } else {
+                    lines.take(3).joinToString("\n")
+                }
+                updateUserProfile =
+                    updateUserProfile?.copy(aboutMe = text)
             },
             label = { Text("About Me") },
             maxLines = 3,
             modifier = Modifier
                 .fillMaxWidth()
+                .wrapContentHeight()
                 .padding(8.dp)
         )
 

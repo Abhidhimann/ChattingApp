@@ -49,7 +49,9 @@ import androidx.navigation.NavController
 import com.example.chattingApp.domain.model.Conversation
 import com.example.chattingApp.domain.model.tempConversations
 import com.example.chattingApp.ui.BottomNavItem
+import com.example.chattingApp.ui.screens.Screen
 import com.example.chattingApp.ui.screens.profilescreen.ProfilePicture
+import com.example.chattingApp.utils.CenterAlignedCommonAppBar
 import com.example.chattingApp.viewModel.ChatListViewModel
 import java.time.LocalDate
 import java.time.ZoneId
@@ -65,7 +67,7 @@ fun ChatListScreenRoot(navController: NavController) {
                 if (event.conversationId.isEmpty()) {
                     // toast or error
                 } else
-                    navController.navigate("chatScreen/${event.conversationId}")
+                    navController.navigate(Screen.Chat.createRoute(event.conversationId))
             }
 
             else -> {
@@ -98,7 +100,15 @@ fun ChatListScreen(state: ChatListScreenState, onEvent: (ChatListScreenEvent) ->
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            ChatScreenAppBar(title = "Messages") {}
+            CenterAlignedCommonAppBar(title = "Messages", leftIcon = {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    "Search",
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp)
+                        .clickable(onClick = { })
+                )
+            }, actions = { ChatScreenMenuActions() })
         },
     ) { innerPadding ->
         UserListContent(
@@ -134,26 +144,6 @@ fun UserListContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ChatScreenAppBar(title: String, onIconClick: () -> Unit) {
-    Surface(shadowElevation = 2.dp) {
-        CenterAlignedTopAppBar(
-            title = { Text(text = title) },
-            navigationIcon =
-            {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    "Search",
-                    modifier = Modifier
-                        .padding(horizontal = 12.dp)
-                        .clickable(onClick = { onIconClick.invoke() })
-                )
-            },
-            actions = { ChatScreenMenuActions() }
-        )
-    }
-}
 
 @Composable
 fun ChatScreenMenuActions() {
