@@ -75,7 +75,11 @@ fun ProfileScreenRoot(userId: String, navController: NavController) {
     ProfileScreen(userId = userId, state = viewModel.state) { event ->
         when (event) {
             is ProfileScreenEvent.EditProfile -> {
-                navController.navigate(Screen.EditProfile.route)
+                navController.navigate(Screen.EditProfile.route) {
+                    popUpTo(Screen.EditProfile.route) {
+                        inclusive = true
+                    }
+                }
             }
 
             is ProfileScreenEvent.OnBackPressed -> {
@@ -131,7 +135,7 @@ fun ProfileScreen(
         topBar = {
             SimpleScreenAppBar(
                 title = "Profile",
-                menuActions = { UserProfileMenuActions(onEvent) },
+                menuActions = { if (userId.isNotEmpty()) UserProfileMenuActions(onEvent) },
                 navigationIcon = {
                     if (userId.isNotEmpty()) {
                         Icon(

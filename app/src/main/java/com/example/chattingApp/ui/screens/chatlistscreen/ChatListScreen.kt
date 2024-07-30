@@ -67,7 +67,16 @@ fun ChatListScreenRoot(navController: NavController) {
                 if (event.conversationId.isEmpty()) {
                     // toast or error
                 } else
-                    navController.navigate(Screen.Chat.createRoute(event.conversationId))
+                    navController.navigate(Screen.Chat.createRoute(event.conversationId)) {
+                        /*
+                         we can't know if user has chat screen with which screen ( for now)
+                         but always base will be chatList, although on chatScreen we are clearing
+                         instance properly but for safety for future
+                         */
+                        popUpTo(Screen.ChatList.route) {
+                            inclusive = false
+                        }
+                    }
             }
 
             else -> {

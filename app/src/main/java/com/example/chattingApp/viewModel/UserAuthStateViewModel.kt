@@ -25,9 +25,6 @@ class UserAuthStateViewModel @Inject constructor(
     var authState by mutableStateOf<Boolean?>(null)
         private set
 
-    private val _isAuthenticate: MutableStateFlow<Boolean?> = MutableStateFlow(null)
-    val isAuthenticate: StateFlow<Boolean?> = _isAuthenticate.asStateFlow()
-
     init {
         getAuthState()
     }
@@ -37,7 +34,6 @@ class UserAuthStateViewModel @Inject constructor(
             Log.d(classTag(), "Error in getting auth state")
         }.collect {
             authState = it
-            _isAuthenticate.value = it
         }
     }
 

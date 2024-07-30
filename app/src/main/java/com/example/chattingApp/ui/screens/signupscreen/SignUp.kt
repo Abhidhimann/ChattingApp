@@ -61,7 +61,13 @@ fun SignUpScreenRoot(navController: NavController) {
     SignUpScreen(viewModel.state) { event ->
         when (event) {
             is SignUpScreenEvent.Login -> {
-                navController.navigate(Screen.SignIn.route)
+                navController.navigate(Screen.SignIn.route){
+                    popUpTo(Screen.SignIn.route){
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                    // only single instance very time, use previous instance if any
+                }
             }
             
             is SignUpScreenEvent.OnBackPressed -> {

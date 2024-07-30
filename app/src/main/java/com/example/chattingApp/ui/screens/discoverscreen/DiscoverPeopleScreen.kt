@@ -59,7 +59,11 @@ fun DiscoverPeopleScreenRoot(navController: NavController) {
                 Screen.Profile.createRoute(
                     event.userId
                 )
-            )
+            ){
+                popUpTo(Screen.SignIn.route){
+                    inclusive = true
+                }
+            }
 
             else -> {
                 viewModel.onEvent(event)

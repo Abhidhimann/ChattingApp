@@ -69,11 +69,15 @@ fun SignInScreenRoot(navController: NavController) {
     SignInScreen(viewModel.state) { event ->
         when (event) {
             is SignInScreenEvent.RegisterUser -> {
-                navController.navigate(Screen.SignUp.route)
+                navController.navigate(Screen.SignUp.route){
+                    launchSingleTop = true
+                }
             }
 
             is SignInScreenEvent.ForgotPassword -> {
-                navController.navigate(Screen.ForgotPassword.route)
+                navController.navigate(Screen.ForgotPassword.route){
+                    launchSingleTop = true
+                }
             }
 
             is SignInScreenEvent.AfterSignIn -> {

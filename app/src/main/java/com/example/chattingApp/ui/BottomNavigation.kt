@@ -21,7 +21,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.get
 import com.example.chattingApp.ui.screens.Screen
 
 enum class BottomNavItem(
@@ -57,7 +59,19 @@ fun BottomNavigationBar(bottomNavItems: Array<BottomNavItem>, navController: Nav
                 onClick = {
                     val currentIndex = selectedTabIndex
                     selectedTabIndex = index
-                    if (currentIndex != index) navController.navigate(tabBarItem.route)
+                    if (currentIndex != index) {
+                        navController.navigate(tabBarItem.route) {
+                            /* basically i wanted --> A->B->C now user goes to A again
+                             * basically i wanted --> B -> C -> A updated, could not find a way
+                             * so now it will ---> A updated ;(
+                             */
+                            popUpTo(tabBarItem.route) {
+                                inclusive = true
+                                // can also save its state and reuse it but don't want that for now
+                            }
+                            launchSingleTop = true
+                        }
+                    }
                 },
                 icon = {
                     NavigationItem(

@@ -59,7 +59,12 @@ fun RequestScreenRoot(navController: NavController) {
                 Screen.Profile.createRoute(
                     event.userId
                 )
-            )
+            ) {
+                popUpTo(Screen.SignIn.route){
+                    inclusive = true
+                }
+                // single new instance every time & don't use previous
+            }
 
             else -> viewModel.onEvent(event)
         }

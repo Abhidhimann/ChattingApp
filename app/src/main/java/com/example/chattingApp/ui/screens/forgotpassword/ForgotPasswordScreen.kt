@@ -26,6 +26,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -89,13 +90,20 @@ fun ForgotPasswordScreen(state: ForgotPasswordState, onEvent: (ForgotPasswordEve
 }
 
 @Composable
-fun ForgotPasswordContent(modifier: Modifier, state: ForgotPasswordState, onEvent: (ForgotPasswordEvent) -> Unit) {
+fun ForgotPasswordContent(
+    modifier: Modifier,
+    state: ForgotPasswordState,
+    onEvent: (ForgotPasswordEvent) -> Unit
+) {
     var email by remember { mutableStateOf("") }
     var emailError by remember { mutableStateOf(false) }
-    if (state.isSendingPasswordResetSuccess == true){
-        ToastUtil.shortToast(LocalContext.current.applicationContext, "Email send successfully.")
-    } else if (state.isSendingPasswordResetSuccess == false) {
-        ToastUtil.shortToast(LocalContext.current.applicationContext, "Some error occurred. Try again later.")
+    val context = LocalContext.current.applicationContext
+    LaunchedEffect(state.isSendingPasswordResetSuccess) {
+        if (state.isSendingPasswordResetSuccess == true) {
+            ToastUtil.shortToast(context, "Email send successfully.")
+        } else if (state.isSendingPasswordResetSuccess == false) {
+            ToastUtil.shortToast(context, "Some error occurred. Try again later.")
+        }
     }
     Column(
         modifier = modifier
@@ -155,7 +163,7 @@ fun ForgotPasswordContent(modifier: Modifier, state: ForgotPasswordState, onEven
 
         Button(
             onClick = {
-                      onEvent(ForgotPasswordEvent.SubmitEmail(email))
+                onEvent(ForgotPasswordEvent.SubmitEmail(email))
             },
             enabled = email.isNotBlank() && !emailError,
             modifier = Modifier

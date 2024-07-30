@@ -49,7 +49,14 @@ fun EditProfileScreenRoot(navController: NavController) {
     val viewModel: EditProfileViewModel = hiltViewModel<EditProfileViewModel>()
     EditProfileScreenContent(state = viewModel.state) { event ->
         when (event) {
-            is EditProfileScreenEvent.CancelOrBack -> navController.popBackStack()
+            is EditProfileScreenEvent.CancelOrBack -> {
+                navController.navigate(Screen.Profile.route){
+                    popUpTo(Screen.Profile.route){
+                        inclusive = true
+                    }
+                    // new single instance
+                }
+            }
             else -> {
                 viewModel.onEvent(event)
             }
