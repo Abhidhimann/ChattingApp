@@ -8,13 +8,12 @@ import com.example.chattingApp.data.remote.AuthService
 import com.example.chattingApp.data.remote.ImageService
 import com.example.chattingApp.data.remote.UserService
 import com.example.chattingApp.domain.model.UserProfile
-import com.example.chattingApp.domain.model.UserRelation
 import com.example.chattingApp.domain.model.UserSummary
+import com.example.chattingApp.domain.repository.UserServiceRepository
 import com.example.chattingApp.utils.ResultResponse
 import com.example.chattingApp.utils.classTag
 import com.example.chattingApp.utils.compressImageTillSize
 import com.example.chattingApp.utils.fileFromContentUri
-import com.example.chattingApp.utils.onFailure
 import com.example.chattingApp.utils.onSuccess
 import com.example.chattingApp.utils.tempTag
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -34,7 +33,7 @@ class UserServiceRepositoryImpl @Inject constructor(
     private val authService: AuthService,
     private val appPrefs: SharedPreferences,
     @ApplicationContext private val applicationContext: Context
-) {
+) : UserServiceRepository {
     // todo later change it to db
     private fun getUser(): UserSummary? {
         val userId = appPrefs.getString("user_id", "")
@@ -53,7 +52,7 @@ class UserServiceRepositoryImpl @Inject constructor(
     }
 
 
-    suspend fun observeNonConnectedUsers() = withContext(Dispatchers.IO) {
+    override suspend fun observeNonConnectedUsers() = withContext(Dispatchers.IO) {
         val selfUser = getUser()
         if (selfUser == null) {
             Log.i(tempTag(), "Error in getting user from prefs")
@@ -98,19 +97,21 @@ class UserServiceRepositoryImpl @Inject constructor(
         return@withContext userService.getUserFriendsDetails(userId)
     }
 
-    suspend fun getUserIncomingConnectRequests(userId: String) = withContext(Dispatchers.IO) {
-        return@withContext userService.getIncomingConnectRequestingUsers(userId)
-    }
+    override suspend fun getUserIncomingConnectRequests(userId: String): ResultResponse<List<UserSummary>> =
+        withContext(Dispatchers.IO) {
+            return@withContext userService.getIncomingConnectRequestingUsers(userId)
+                .map { it.map { it.toUserSummary() } }
+        }
 
     private suspend fun getUserOutgoingConnectRequests(userId: String) =
         withContext(Dispatchers.IO) {
             return@withContext userService.getOutgoingConnectRequestingUsers(userId)
         }
 
-    suspend fun getUserProfileDetails(userId: String) =
+    override suspend fun getUserProfileDetails(userId: String) =
         getUserProfileDtoDetails(userId).map { it.toUserProfile() }
 
-    suspend fun getSelfProfileDetails(): ResultResponse<UserProfile> {
+    override suspend fun getSelfProfileDetails(): ResultResponse<UserProfile> {
         return withContext(Dispatchers.IO) {
             val selfUser = getUser()
             if (selfUser == null) {
@@ -122,7 +123,7 @@ class UserServiceRepositoryImpl @Inject constructor(
         }
     }
 
-    suspend fun updateUserProfile(userProfile: UserProfile): ResultResponse<Unit> =
+    override suspend fun updateUserProfile(userProfile: UserProfile): ResultResponse<Unit> =
         withContext(Dispatchers.IO) {
             when (val result = userService.updateUserProfile(userProfile.toUserProfileDto())) {
                 is ResultResponse.Success -> {
@@ -143,52 +144,34 @@ class UserServiceRepositoryImpl @Inject constructor(
             // todo later inject local datasource and update db here
         }
 
-    suspend fun updateUserOnlineStatus(value: Boolean) =
-        withContext(Dispatchers.IO) {
-            val userId = appPrefs.getString("user_id", "")
-            if (userId.isNullOrEmpty()) {
-                Log.i(tempTag(), "Error in getting userId")
-                return@withContext
-            }
-            userService.updateUserOnlineStatus(userId, value)
-        }
-
-    suspend fun isUserIdExists(): Boolean {
-        return withContext(Dispatchers.IO) { appPrefs.contains("user_id") }
-    }
-
-    suspend fun isUserProfileExists(): Boolean {
-        return withContext(Dispatchers.IO) { appPrefs.contains("user_profile") }
-    }
-
     // todo will implement logic if other user previous send request to me
     // and when i send connection request to same user then i accept it instead of
     // sending request
-    suspend fun sendConnectionRequest(toUser: UserSummary): ResultResponse<Unit> {
+    override suspend fun sendConnectionRequest(toUser: UserSummary): ResultResponse<Unit> {
         return withContext(Dispatchers.IO) {
             val fromUser = getUser()
                 ?: return@withContext ResultResponse.Failed(Exception("Error in getting userId"))
-           return@withContext userService.sendConnectionRequest(
+            return@withContext userService.sendConnectionRequest(
                 toUser.toUserSummaryDto(),
                 fromUser.toUserSummaryDto()
             )
         }
     }
 
-    suspend fun removeConnectionRequestByRequestedUser(toUserId: String) =
+    override suspend fun removeConnectionRequestByRequestedUser(toUserId: String) =
         withContext(Dispatchers.IO) {
             val fromUser = getUser()
             if (fromUser == null) {
                 Log.i(tempTag(), "Error in getting userId")
-                return@withContext
+                return@withContext ResultResponse.Failed(Exception("Error in getting userId"))
             }
-            userService.removeConnectRequest(
+            return@withContext userService.removeConnectRequest(
                 toUserId,
                 fromUser.userId
             )
         }
 
-    suspend fun removeConnectionRequestBySelf(toUserId: String) =
+    override suspend fun removeConnectionRequestBySelf(toUserId: String) =
         withContext(Dispatchers.IO) {
             val fromUser = getUser()
             if (fromUser == null) {
@@ -201,7 +184,7 @@ class UserServiceRepositoryImpl @Inject constructor(
             )
         }
 
-    suspend fun observeIncomingRequests() = withContext(Dispatchers.IO) {
+    override suspend fun observeIncomingRequests() = withContext(Dispatchers.IO) {
         val fromUser = getUser()
         if (fromUser == null) {
             Log.i(tempTag(), "Error in getting userId")
@@ -212,7 +195,7 @@ class UserServiceRepositoryImpl @Inject constructor(
         }
     }
 
-    suspend fun acceptConnectionRequest(fromUser: UserSummary): ResultResponse<Unit> {
+    override suspend fun acceptConnectionRequest(fromUser: UserSummary): ResultResponse<Unit> {
         return withContext(Dispatchers.IO) {
             val toUser = getUser()
             if (toUser == null) {
@@ -226,7 +209,7 @@ class UserServiceRepositoryImpl @Inject constructor(
         }
     }
 
-    suspend fun uploadUserPic(imageUri: Uri): ResultResponse<String> {
+    override suspend fun uploadUserPic(imageUri: Uri): ResultResponse<String> {
         val fromUser =
             getUser() ?: return ResultResponse.Failed(Exception("Error in getting userId"))
 
@@ -247,7 +230,7 @@ class UserServiceRepositoryImpl @Inject constructor(
         }
     }
 
-    suspend fun logOut(): ResultResponse<Unit> {
+    override suspend fun logOut(): ResultResponse<Unit> {
         return withContext(Dispatchers.IO) {
             authService.logOut()
         }

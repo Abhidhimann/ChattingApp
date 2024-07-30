@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.chattingApp.data.repository.UserServiceRepositoryImpl
+import com.example.chattingApp.domain.repository.UserServiceRepository
 import com.example.chattingApp.ui.screens.profilescreen.ProfileScreenEvent
 import com.example.chattingApp.ui.screens.profilescreen.ProfileScreenState
 import com.example.chattingApp.utils.ResultResponse
@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileScreenViewModel @Inject constructor(
-    private val repository: UserServiceRepositoryImpl
+    private val repository: UserServiceRepository
 ) : ViewModel() {
 
     var state by mutableStateOf(ProfileScreenState())

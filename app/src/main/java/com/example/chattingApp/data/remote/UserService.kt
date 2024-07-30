@@ -9,7 +9,6 @@ interface UserService {
     suspend fun createUser(userDto: UserProfileResponse): ResultResponse<UserProfileResponse>
     suspend fun isUserExists(userId: String): Boolean
     suspend fun updateUserProfile(userProfile: UserProfileResponse): ResultResponse<Unit>
-    suspend fun updateUserOnlineStatus(userId: String, value: Boolean): Int
     suspend fun sendConnectionRequest(toUserSummary: UserSummaryResponse, fromUserSummary: UserSummaryResponse): ResultResponse<Unit>
     suspend fun removeConnectRequest(toUserId: String, fromUserId: String): ResultResponse<Unit>
     suspend fun observeNonConnectedUsers(fromUserId: String, friendsIdList: List<String>): Flow<UserProfileResponse>

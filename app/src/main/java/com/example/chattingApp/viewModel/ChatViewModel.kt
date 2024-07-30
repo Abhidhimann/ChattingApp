@@ -77,7 +77,7 @@ class ChatViewModel @Inject constructor(
 
     private fun getConversationDetails(conversationId: String) {
         viewModelScope.launch {
-            when (val conversationResult = chatRepository.getConversation(conversationId)) {
+            when (val conversationResult = chatRepository.getConversationDetails(conversationId)) {
                 is ResultResponse.Success -> {
                     conversation = conversationResult.data
                 }

@@ -57,19 +57,6 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
         }
     }
 
-    override suspend fun updateUserOnlineStatus(userId: String, value: Boolean): Int {
-        return withContext(Dispatchers.IO) {
-            try {
-                db.collection("users_details").document(userId).update("ready_to_chat", value)
-                    .await()
-                return@withContext 1
-            } catch (e: Exception) {
-                Log.i(classTag(), "error in adding message $e")
-                return@withContext -1
-            }
-        }
-    }
-
     override suspend fun sendConnectionRequest(
         toUserSummary: UserSummaryResponse,
         fromUserSummary: UserSummaryResponse

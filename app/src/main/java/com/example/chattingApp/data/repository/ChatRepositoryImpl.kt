@@ -35,7 +35,7 @@ class ChatRepositoryImpl @Inject constructor(
         return UserSummary(name = name, profileImageUrl = profileImageUrl, userId = userId)
     }
 
-    suspend fun getSingleChat(chatId: String): ResultResponse<SingleChatResponse> =
+    private suspend fun getSingleChat(chatId: String): ResultResponse<SingleChatResponse> =
         withContext(Dispatchers.IO) {
             val selfUser = getUser()
             if (selfUser == null) {
@@ -60,7 +60,7 @@ class ChatRepositoryImpl @Inject constructor(
         chatSocketService.sendMessage(message.toMessageDto())
     }
 
-    override suspend fun getConversation(conversationId: String): ResultResponse<Conversation> =
+    override suspend fun getConversationDetails(conversationId: String): ResultResponse<Conversation> =
         withContext(Dispatchers.IO) {
             val selfUser = getUser()
             if (selfUser == null) {

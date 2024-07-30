@@ -5,6 +5,7 @@ import android.util.Log
 import com.example.chattingApp.data.remote.SingleChatService
 import com.example.chattingApp.domain.model.Conversation
 import com.example.chattingApp.domain.model.UserSummary
+import com.example.chattingApp.domain.repository.ConversationRepository
 import com.example.chattingApp.utils.tempTag
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.emptyFlow
@@ -18,7 +19,7 @@ import javax.inject.Singleton
 class ConversationRepositoryImpl @Inject constructor(
     private val singleChatService: SingleChatService,
     private val appPrefs: SharedPreferences
-) {
+): ConversationRepository {
 
     // todo later change it to db
     private fun getUser(): UserSummary?  {
@@ -29,7 +30,7 @@ class ConversationRepositoryImpl @Inject constructor(
         return UserSummary(name = name, profileImageUrl = profileImageUrl, userId = userId)
     }
 
-    suspend fun observerConversations() = withContext(Dispatchers.IO){
+    override suspend fun observerConversations() = withContext(Dispatchers.IO){
         val selfUser = getUser()
         if (selfUser == null) {
             Log.i(tempTag(), "Error in getting user from prefs")

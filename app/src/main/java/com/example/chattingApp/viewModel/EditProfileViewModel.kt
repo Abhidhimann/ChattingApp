@@ -7,8 +7,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.chattingApp.data.repository.UserServiceRepositoryImpl
 import com.example.chattingApp.domain.model.UserProfile
+import com.example.chattingApp.domain.repository.UserServiceRepository
 import com.example.chattingApp.ui.screens.editprofilescreen.EditProfileScreenEvent
 import com.example.chattingApp.ui.screens.editprofilescreen.EditProfileScreenState
 import com.example.chattingApp.utils.ResultResponse
@@ -20,7 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
-    private val repository: UserServiceRepositoryImpl
+    private val repository: UserServiceRepository
 ) : ViewModel() {
 
     var state by mutableStateOf(EditProfileScreenState())
