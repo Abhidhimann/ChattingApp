@@ -135,7 +135,7 @@ fun ProfileScreen(
         topBar = {
             SimpleScreenAppBar(
                 title = "Profile",
-                menuActions = { if (userId.isNotEmpty()) UserProfileMenuActions(onEvent) },
+                menuActions = { if (userId.isEmpty()) UserProfileMenuActions(onEvent) },
                 navigationIcon = {
                     if (userId.isNotEmpty()) {
                         Icon(
