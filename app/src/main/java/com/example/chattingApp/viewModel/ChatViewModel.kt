@@ -8,9 +8,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.chattingApp.domain.model.Conversation
 import com.example.chattingApp.domain.model.Message
-import com.example.chattingApp.data.repository.ChatRepositoryImpl
+import com.example.chattingApp.domain.repository.ChatRepository
 import com.example.chattingApp.ui.screens.chatscreen.ChatScreenEvent
 import com.example.chattingApp.ui.screens.chatscreen.ChatScreenState
+import com.example.chattingApp.utils.ResultResponse
 import com.example.chattingApp.utils.classTag
 import com.example.chattingApp.utils.tempTag
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,11 +22,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatViewModel @Inject constructor(
 //    private val chatSocketService: ChatSocketService,
-    private val chatRepositoryImpl: ChatRepositoryImpl
+    private val chatRepository: ChatRepository
 ) : ViewModel() {
-
-//    private val _state = mutableStateOf(ChatState())
-//    val state: State<ChatState> = _state
 
     var state by mutableStateOf(ChatScreenState())
         private set
@@ -34,14 +32,20 @@ class ChatViewModel @Inject constructor(
 
     private fun sendMessage(message: Message) {
         viewModelScope.launch {
-            chatRepositoryImpl.sendMessage(message)
+            when (val result = chatRepository.sendMessage(message)) {
+                is ResultResponse.Success -> Unit
+
+                is ResultResponse.Failed -> {
+                    // mark message as failed in that condition todo
+                }
+            }
         }
     }
 
     private fun observeMessages(conversationId: String) {
         viewModelScope.launch {
             Log.i(tempTag(), "calling this")
-            chatRepositoryImpl.observeMessages(conversationId)
+            chatRepository.observeMessages(conversationId)
                 .catch { e ->
                     Log.e(classTag(), "Error observing messages", e)
                 }
@@ -62,8 +66,7 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    private fun generateMessage(textContent: String): Message? {
-        if (conversation == null) return null
+    private fun generateMessage(textContent: String): Message {
         return Message(
             textContent = textContent,
             senderId = conversation!!.currentUserId,
@@ -72,9 +75,17 @@ class ChatViewModel @Inject constructor(
         )
     }
 
-    private fun getConversationDetails(chatId: String) {
+    private fun getConversationDetails(conversationId: String) {
         viewModelScope.launch {
-            conversation = chatRepositoryImpl.getSingleChat(chatId)
+            when (val conversationResult = chatRepository.getConversation(conversationId)) {
+                is ResultResponse.Success -> {
+                    conversation = conversationResult.data
+                }
+
+                is ResultResponse.Failed -> {
+                    state = state.copy(isChatDetailsFetchSuccess = false)
+                }
+            }
         }
     }
 
@@ -82,11 +93,7 @@ class ChatViewModel @Inject constructor(
         when (event) {
             is ChatScreenEvent.SendMessage -> {
                 val message = generateMessage(event.textContent)
-                if (message == null) {
-                    // change stat to error
-                } else {
-                    sendMessage(message)
-                }
+                sendMessage(message)
             }
 
             is ChatScreenEvent.ObserverMessages -> {

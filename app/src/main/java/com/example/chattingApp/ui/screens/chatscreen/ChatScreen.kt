@@ -32,6 +32,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -40,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,13 +52,16 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import com.example.chattingApp.domain.model.Message
 import com.example.chattingApp.domain.model.MessageType
 import com.example.chattingApp.domain.model.tempMessageList
 import com.example.chattingApp.utils.CenterAlignedCommonAppBar
+import com.example.chattingApp.utils.ToastUtil
 import com.example.chattingApp.utils.tempTag
 import com.example.chattingApp.viewModel.ChatViewModel
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -77,18 +82,28 @@ fun ChatScreenRoot(chatId: String, navController: NavController) {
 
 @Composable
 fun ChatScreen(chatId: String, state: ChatScreenState, onEvent: (ChatScreenEvent) -> Unit) {
-
+    val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(key1 = lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_START) {
-                onEvent(ChatScreenEvent.ObserverMessages(chatId)) // here get conversation id by state
-                onEvent(ChatScreenEvent.GetConversationDetails(chatId))
+                lifecycleOwner.lifecycleScope.launch {
+                    onEvent(ChatScreenEvent.GetConversationDetails(chatId))
+                    onEvent(ChatScreenEvent.ObserverMessages(chatId)) // here get conversation id by state
+                    // maybe can launch them parallel
+                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    LaunchedEffect(state.isChatDetailsFetchSuccess) {
+        if (state.isChatDetailsFetchSuccess == false) {
+            ToastUtil.shortToast(context.applicationContext, "Some error occurred")
+            onEvent(ChatScreenEvent.OnBackButtonPressed)
         }
     }
 

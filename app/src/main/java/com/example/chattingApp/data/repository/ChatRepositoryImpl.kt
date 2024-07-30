@@ -4,13 +4,18 @@ import android.content.SharedPreferences
 import android.util.Log
 import com.example.chattingApp.data.remote.ChatSocketService
 import com.example.chattingApp.data.remote.SingleChatService
+import com.example.chattingApp.data.remote.dto.SingleChatResponse
+import com.example.chattingApp.domain.model.Conversation
 import com.example.chattingApp.domain.model.Message
 import com.example.chattingApp.domain.model.UserSummary
+import com.example.chattingApp.domain.repository.ChatRepository
+import com.example.chattingApp.utils.ResultResponse
 import com.example.chattingApp.utils.tempTag
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import javax.annotation.meta.When
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,7 +24,7 @@ class ChatRepositoryImpl @Inject constructor(
     private val singleChatService: SingleChatService,
     private val chatSocketService: ChatSocketService,
     private val appPrefs: SharedPreferences
-) {
+) : ChatRepository {
 
     // todo later change it to db
     private fun getUser(): UserSummary? {
@@ -30,19 +35,17 @@ class ChatRepositoryImpl @Inject constructor(
         return UserSummary(name = name, profileImageUrl = profileImageUrl, userId = userId)
     }
 
-    suspend fun getSingleChat(chatId: String) = withContext(Dispatchers.IO) {
-        val selfUser = getUser()
-        if (selfUser == null) {
-            Log.i(tempTag(), "Error in getting user from prefs")
-            return@withContext null
+    suspend fun getSingleChat(chatId: String): ResultResponse<SingleChatResponse> =
+        withContext(Dispatchers.IO) {
+            val selfUser = getUser()
+            if (selfUser == null) {
+                Log.i(tempTag(), "Error in getting user from prefs")
+                return@withContext ResultResponse.Failed(Exception("Error in getting user from prefs"))
+            }
+            singleChatService.getSingleChat(chatId)
         }
-        val chatDto = singleChatService.getSingleChat(chatId)
-        if (chatDto == null) return@withContext null else {
-            chatDto.toConversation(selfUser)
-        }
-    }
 
-    suspend fun observeMessages(conversationId: String) = withContext(Dispatchers.IO){
+    override suspend fun observeMessages(conversationId: String) = withContext(Dispatchers.IO) {
         val selfUser = getUser()
         if (selfUser == null) {
             Log.i(tempTag(), "Error in getting user from prefs")
@@ -53,7 +56,29 @@ class ChatRepositoryImpl @Inject constructor(
         }
     }
 
-    suspend fun sendMessage(message: Message) = withContext(Dispatchers.IO){
+    override suspend fun sendMessage(message: Message) = withContext(Dispatchers.IO) {
         chatSocketService.sendMessage(message.toMessageDto())
     }
+
+    override suspend fun getConversation(conversationId: String): ResultResponse<Conversation> =
+        withContext(Dispatchers.IO) {
+            val selfUser = getUser()
+            if (selfUser == null) {
+                Log.i(tempTag(), "Error in getting user from prefs")
+                return@withContext ResultResponse.Failed(Exception("Error in getting user from prefs"))
+            }
+            when (val conversationRes =
+                getSingleChat(conversationId).map { it.toConversation(selfUser) }) {
+                is ResultResponse.Success -> {
+                    if (conversationRes.data == null) {
+                        return@withContext ResultResponse.Failed(Exception("Error in converting single chat to conversation"))
+                    }
+                    return@withContext ResultResponse.Success(conversationRes.data)
+                }
+
+                is ResultResponse.Failed -> {
+                    return@withContext ResultResponse.Failed(conversationRes.exception)
+                }
+            }
+        }
 }

@@ -4,6 +4,7 @@ import com.example.chattingApp.domain.model.Message
 
 data class ChatScreenState(
     var messages: List<Message> = emptyList(),
-    val isLoading: Boolean = false
+    var isLoading: Boolean = false,
+    var isChatDetailsFetchSuccess: Boolean = true
 )
 

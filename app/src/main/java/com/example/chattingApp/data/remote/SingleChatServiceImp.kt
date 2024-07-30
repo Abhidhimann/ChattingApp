@@ -3,6 +3,7 @@ package com.example.chattingApp.data.remote
 import android.util.Log
 import com.example.chattingApp.data.remote.dto.SingleChatResponse
 import com.example.chattingApp.data.remote.dto.UserSummaryResponse
+import com.example.chattingApp.utils.ResultResponse
 import com.example.chattingApp.utils.classTag
 import com.example.chattingApp.utils.tempTag
 import com.google.firebase.firestore.FirebaseFirestore
@@ -17,58 +18,66 @@ class SingleChatServiceImp(private val db: FirebaseFirestore) : SingleChatServic
     override suspend fun createSingleChat(
         originator: UserSummaryResponse,
         recipient: UserSummaryResponse
-    ): Int {
+    ): ResultResponse<Unit> {
         return withContext(Dispatchers.IO) {
-            val singleChatResponse = SingleChatResponse(
-                originator = originator,
-                recipient = recipient,
-                participantIds = listOf(originator.userId, recipient.userId)
-            )
             try {
+                val singleChatResponse = SingleChatResponse(
+                    originator = originator,
+                    recipient = recipient,
+                    participantIds = listOf(originator.userId, recipient.userId)
+                )
                 val docRef = db.collection("singleChat").add(singleChatResponse).await()
                 docRef.update("chatId", docRef.id)
                 Log.i(classTag(), "chat created with id ${docRef.id}")
-                return@withContext 1
+                return@withContext ResultResponse.Success(Unit)
             } catch (e: Exception) {
                 Log.i(classTag(), "error in creating chat $e")
-                return@withContext -1
+                return@withContext ResultResponse.Failed(e)
             }
         }
     }
 
-    override suspend fun updateUserSummaryInChat(chatId: String, userSummary: UserSummaryResponse): Int {
+    override suspend fun updateUserSummaryInChat(
+        singleChatDto: SingleChatResponse,
+        userSummary: UserSummaryResponse
+    ): ResultResponse<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                val singleChatDto = getSingleChat(chatId)
-                if (singleChatDto?.originator == null || singleChatDto.recipient == null) {
+                if (singleChatDto.originator == null || singleChatDto.recipient == null) {
                     Log.i(tempTag(), "error in updateUserSummary, singleChatDto is null")
-                    return@withContext -1
+                    return@withContext ResultResponse.Failed(Exception("error in updateUserSummary, singleChatDto is null"))
                 }
                 if (singleChatDto.originator!!.userId == userSummary.userId) {
-                    db.collection("singleChat").document(chatId).update("originator", userSummary)
+                    db.collection("singleChat").document(singleChatDto.chatId)
+                        .update("originator", userSummary)
                         .await()
-                    return@withContext 1
+                    return@withContext ResultResponse.Success(Unit)
                 } else if (singleChatDto.recipient!!.userId == userSummary.userId) {
-                    db.collection("singleChat").document(chatId).update("recipient", userSummary)
+                    db.collection("singleChat").document(singleChatDto.chatId)
+                        .update("recipient", userSummary)
                         .await()
-                    return@withContext 1
+                    return@withContext ResultResponse.Success(Unit)
                 }
                 Log.i(tempTag(), "No user exits in chat with userId ${userSummary.userId}")
-                return@withContext -1
+                return@withContext ResultResponse.Failed(Exception("No user exits in chat with userId ${userSummary.userId}"))
             } catch (e: Exception) {
                 Log.e(classTag(), "error in updating user summary", e)
-                return@withContext -1
+                return@withContext ResultResponse.Failed(e)
             }
         }
     }
 
-    override suspend fun getSingleChat(chatId: String): SingleChatResponse? {
+    override suspend fun getSingleChat(chatId: String): ResultResponse<SingleChatResponse> {
         return withContext(Dispatchers.IO) {
             try {
                 val singleChatSnapshot = db.collection("singleChat").document(chatId).get().await()
-                return@withContext singleChatSnapshot.toObject(SingleChatResponse::class.java)
+                val singleChatResponse = singleChatSnapshot.toObject(SingleChatResponse::class.java)
+                if (singleChatSnapshot == null) {
+                    return@withContext ResultResponse.Failed(Exception("singleChatSnapshot with chatId: $chatId is null"))
+                }
+                return@withContext ResultResponse.Success(singleChatResponse!!)
             } catch (e: Exception) {
-                return@withContext null
+                return@withContext ResultResponse.Failed(e)
             }
         }
     }
@@ -85,7 +94,8 @@ class SingleChatServiceImp(private val db: FirebaseFirestore) : SingleChatServic
                 }
 
                 snapshots?.documentChanges?.forEach { documentChange ->
-                    val singleChat = documentChange.document.toObject(SingleChatResponse::class.java)
+                    val singleChat =
+                        documentChange.document.toObject(SingleChatResponse::class.java)
                     trySend(singleChat).isSuccess
                 }
             }
@@ -96,7 +106,7 @@ class SingleChatServiceImp(private val db: FirebaseFirestore) : SingleChatServic
     override suspend fun acceptConnectRequestAndCreateChat(
         toUser: UserSummaryResponse,
         fromUser: UserSummaryResponse
-    ): Int {
+    ): ResultResponse<Unit> {
         return withContext(Dispatchers.IO) {
             try {
                 val toUserIncomingRequestRef = db.collection("users_details")
@@ -121,7 +131,7 @@ class SingleChatServiceImp(private val db: FirebaseFirestore) : SingleChatServic
 
                 val singleChatRef = db.collection("singleChat").document()
 
-                val result = db.runTransaction { transaction ->
+                db.runTransaction { transaction ->
                     transaction.delete(toUserIncomingRequestRef)
                     transaction.delete(fromUserOutgoingRequestRef)
                     transaction.set(toUserFriendRef, mapOf("userId" to fromUser.userId))
@@ -136,14 +146,12 @@ class SingleChatServiceImp(private val db: FirebaseFirestore) : SingleChatServic
 
                     transaction.set(singleChatRef, singleChatResponse)
                     transaction.update(singleChatRef, "chatId", singleChatRef.id)
-
-                    1
                 }.await()
 
-                return@withContext result
+                return@withContext ResultResponse.Success(Unit)
             } catch (e: Exception) {
                 Log.e(classTag(), "Error in acceptConnectRequestAndCreateChat: $e")
-                return@withContext -1
+                return@withContext ResultResponse.Failed(e)
             }
         }
     }
