@@ -1,4 +1,4 @@
-package com.example.chattingApp.data.remote
+package com.example.chattingApp.data.remote.image
 
 import android.net.Uri
 import android.util.Log
@@ -8,8 +8,6 @@ import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import okhttp3.internal.wait
-import java.util.UUID
 
 class ImageServiceImpl(private val storageRef: StorageReference) : ImageService {
     override suspend fun uploadImageToFirebaseStorage(

@@ -2,7 +2,7 @@ package com.example.chattingApp.data.repository
 
 import android.content.SharedPreferences
 import android.util.Log
-import com.example.chattingApp.data.remote.SingleChatService
+import com.example.chattingApp.data.remote.singlechat.SingleChatService
 import com.example.chattingApp.domain.model.Conversation
 import com.example.chattingApp.domain.model.UserSummary
 import com.example.chattingApp.domain.repository.ConversationRepository

@@ -1,4 +1,4 @@
-package com.example.chattingApp.data.remote
+package com.example.chattingApp.data.remote.chatsocket
 
 import com.example.chattingApp.data.remote.dto.MessageResponse
 import com.example.chattingApp.utils.ResultResponse

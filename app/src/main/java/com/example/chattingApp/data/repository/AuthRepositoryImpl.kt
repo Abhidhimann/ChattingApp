@@ -2,22 +2,18 @@ package com.example.chattingApp.data.repository
 
 import android.content.SharedPreferences
 import android.util.Log
-import com.example.chattingApp.data.remote.AuthService
-import com.example.chattingApp.data.remote.UserService
+import com.example.chattingApp.data.remote.auth.AuthService
+import com.example.chattingApp.data.remote.user.UserService
 import com.example.chattingApp.data.remote.dto.UserProfileResponse
 import com.example.chattingApp.domain.model.UserSummary
 import com.example.chattingApp.domain.repository.AuthRepository
 import com.example.chattingApp.utils.ResultResponse
 import com.example.chattingApp.utils.classTag
-import com.example.chattingApp.utils.onFailure
-import com.example.chattingApp.utils.onSuccess
-import com.example.chattingApp.utils.tempTag
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import java.lang.Exception
 import javax.inject.Inject
 import javax.inject.Singleton
 

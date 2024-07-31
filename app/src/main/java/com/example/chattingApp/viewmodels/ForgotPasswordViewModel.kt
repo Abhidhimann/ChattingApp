@@ -1,4 +1,4 @@
-package com.example.chattingApp.viewModel
+package com.example.chattingApp.viewmodels
 
 import android.util.Log
 import androidx.compose.runtime.getValue

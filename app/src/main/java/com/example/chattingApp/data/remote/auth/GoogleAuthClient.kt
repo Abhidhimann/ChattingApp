@@ -1,4 +1,4 @@
-package com.example.chattingApp.data.remote
+package com.example.chattingApp.data.remote.auth
 
 import android.content.Context
 import android.util.Log

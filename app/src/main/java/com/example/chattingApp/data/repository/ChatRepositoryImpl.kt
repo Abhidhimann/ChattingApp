@@ -2,8 +2,8 @@ package com.example.chattingApp.data.repository
 
 import android.content.SharedPreferences
 import android.util.Log
-import com.example.chattingApp.data.remote.ChatSocketService
-import com.example.chattingApp.data.remote.SingleChatService
+import com.example.chattingApp.data.remote.chatsocket.ChatSocketService
+import com.example.chattingApp.data.remote.singlechat.SingleChatService
 import com.example.chattingApp.data.remote.dto.SingleChatResponse
 import com.example.chattingApp.domain.model.Conversation
 import com.example.chattingApp.domain.model.Message
@@ -15,7 +15,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import javax.annotation.meta.When
 import javax.inject.Inject
 import javax.inject.Singleton
 

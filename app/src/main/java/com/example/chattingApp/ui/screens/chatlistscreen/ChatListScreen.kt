@@ -16,12 +16,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,11 +45,10 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.example.chattingApp.domain.model.Conversation
 import com.example.chattingApp.domain.model.tempConversations
-import com.example.chattingApp.ui.BottomNavItem
 import com.example.chattingApp.ui.screens.Screen
 import com.example.chattingApp.ui.screens.profilescreen.ProfilePicture
-import com.example.chattingApp.utils.CenterAlignedCommonAppBar
-import com.example.chattingApp.viewModel.ChatListViewModel
+import com.example.chattingApp.ui.util.CenterAlignedCommonAppBar
+import com.example.chattingApp.viewmodels.ChatListViewModel
 import java.time.LocalDate
 import java.time.ZoneId
 

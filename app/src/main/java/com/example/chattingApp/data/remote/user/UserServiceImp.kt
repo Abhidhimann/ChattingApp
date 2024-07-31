@@ -1,7 +1,6 @@
-package com.example.chattingApp.data.remote
+package com.example.chattingApp.data.remote.user
 
 import android.util.Log
-import com.example.chattingApp.data.remote.dto.MessageResponse
 import com.example.chattingApp.data.remote.dto.SingleChatResponse
 import com.example.chattingApp.data.remote.dto.UserProfileResponse
 import com.example.chattingApp.data.remote.dto.UserSummaryResponse

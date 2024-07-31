@@ -13,19 +13,15 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -42,13 +38,12 @@ import androidx.navigation.NavController
 import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.domain.model.UserRelation
 import com.example.chattingApp.domain.model.tempUserProfile
-import com.example.chattingApp.ui.BottomNavItem
 import com.example.chattingApp.ui.screens.Screen
 import com.example.chattingApp.ui.screens.profilescreen.ProfilePicture
 
 import com.example.chattingApp.ui.screens.profilescreen.SimpleScreenAppBar
-import com.example.chattingApp.utils.ToastUtil
-import com.example.chattingApp.viewModel.DiscoverViewModel
+import com.example.chattingApp.ui.util.ToastUtil
+import com.example.chattingApp.viewmodels.DiscoverViewModel
 
 @Composable
 fun DiscoverPeopleScreenRoot(navController: NavController) {

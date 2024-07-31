@@ -1,4 +1,4 @@
-package com.example.chattingApp.data.remote
+package com.example.chattingApp.data.remote.singlechat
 
 import android.util.Log
 import com.example.chattingApp.data.remote.dto.SingleChatResponse

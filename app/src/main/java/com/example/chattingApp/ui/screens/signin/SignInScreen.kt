@@ -53,11 +53,11 @@ import androidx.navigation.NavController
 import com.example.chattingApp.R
 import com.example.chattingApp.ui.BottomNavItem
 import com.example.chattingApp.ui.screens.Screen
-import com.example.chattingApp.utils.SimpleLoadingScreen
-import com.example.chattingApp.utils.SpannableString
-import com.example.chattingApp.utils.ToastUtil
+import com.example.chattingApp.ui.util.SimpleLoadingScreen
+import com.example.chattingApp.ui.util.SpannableString
+import com.example.chattingApp.ui.util.ToastUtil
 import com.example.chattingApp.utils.Validation.validateEmail
-import com.example.chattingApp.viewModel.SignInViewModel
+import com.example.chattingApp.viewmodels.SignInViewModel
 
 @Composable
 fun SignInScreenRoot(navController: NavController) {

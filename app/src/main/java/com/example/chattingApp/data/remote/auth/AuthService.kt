@@ -1,4 +1,4 @@
-package com.example.chattingApp.data.remote
+package com.example.chattingApp.data.remote.auth
 
 import com.example.chattingApp.utils.ResultResponse
 import com.google.firebase.auth.AuthCredential

@@ -1,4 +1,4 @@
-package com.example.chattingApp.data.remote
+package com.example.chattingApp.data.remote.singlechat
 
 import com.example.chattingApp.data.remote.dto.SingleChatResponse
 import com.example.chattingApp.data.remote.dto.UserSummaryResponse

@@ -1,4 +1,4 @@
-package com.example.chattingApp.viewModel
+package com.example.chattingApp.viewmodels
 
 import android.net.Uri
 import android.util.Log

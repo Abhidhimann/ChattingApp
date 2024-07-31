@@ -1,9 +1,7 @@
 package com.example.chattingApp.ui.screens.signupscreen
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,21 +20,18 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -47,13 +42,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.chattingApp.ui.screens.Screen
 import com.example.chattingApp.ui.screens.profilescreen.SimpleScreenAppBar
-import com.example.chattingApp.utils.SimpleLoadingScreen
-import com.example.chattingApp.utils.SpannableString
-import com.example.chattingApp.utils.ToastUtil
+import com.example.chattingApp.ui.util.SimpleLoadingScreen
+import com.example.chattingApp.ui.util.SpannableString
+import com.example.chattingApp.ui.util.ToastUtil
 import com.example.chattingApp.utils.Validation.validateEmail
 import com.example.chattingApp.utils.Validation.validateName
 import com.example.chattingApp.utils.Validation.validatePassword
-import com.example.chattingApp.viewModel.SignUpViewModel
+import com.example.chattingApp.viewmodels.SignUpViewModel
 
 @Composable
 fun SignUpScreenRoot(navController: NavController) {

@@ -1,4 +1,4 @@
-package com.example.chattingApp.viewModel
+package com.example.chattingApp.viewmodels
 
 import android.util.Log
 import androidx.compose.runtime.getValue
@@ -6,7 +6,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.chattingApp.data.repository.ConversationRepositoryImpl
 import com.example.chattingApp.domain.repository.ConversationRepository
 import com.example.chattingApp.ui.screens.chatlistscreen.ChatListScreenEvent
 import com.example.chattingApp.ui.screens.chatlistscreen.ChatListScreenState

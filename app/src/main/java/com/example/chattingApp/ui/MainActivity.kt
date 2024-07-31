@@ -1,6 +1,5 @@
 package com.example.chattingApp.ui
 
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -21,7 +20,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.chattingApp.ui.screens.Screen
 import com.example.chattingApp.ui.theme.ChattingAppTheme
 import com.example.chattingApp.utils.classTag
-import com.example.chattingApp.viewModel.UserAuthStateViewModel
+import com.example.chattingApp.viewmodels.UserAuthStateViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 

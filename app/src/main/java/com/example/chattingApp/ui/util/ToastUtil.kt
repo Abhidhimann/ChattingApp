@@ -1,4 +1,4 @@
-package com.example.chattingApp.utils
+package com.example.chattingApp.ui.util
 
 import android.content.Context
 import android.os.Handler

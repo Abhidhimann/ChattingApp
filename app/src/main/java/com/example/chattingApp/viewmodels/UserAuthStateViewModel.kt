@@ -1,4 +1,4 @@
-package com.example.chattingApp.viewModel
+package com.example.chattingApp.viewmodels
 
 import android.util.Log
 import androidx.compose.runtime.getValue
@@ -9,9 +9,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.chattingApp.domain.repository.AuthRepository
 import com.example.chattingApp.utils.classTag
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject

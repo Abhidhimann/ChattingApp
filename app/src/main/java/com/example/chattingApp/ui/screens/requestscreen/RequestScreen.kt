@@ -39,16 +39,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
-import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.domain.model.UserSummary
-import com.example.chattingApp.domain.model.tempUserProfile
 import com.example.chattingApp.domain.model.tempUserSummary
-import com.example.chattingApp.ui.BottomNavItem
 import com.example.chattingApp.ui.screens.Screen
 import com.example.chattingApp.ui.screens.profilescreen.ProfilePicture
 import com.example.chattingApp.ui.screens.profilescreen.SimpleScreenAppBar
-import com.example.chattingApp.utils.ToastUtil
-import com.example.chattingApp.viewModel.RequestScreenViewModel
+import com.example.chattingApp.ui.util.ToastUtil
+import com.example.chattingApp.viewmodels.RequestScreenViewModel
 
 @Composable
 fun RequestScreenRoot(navController: NavController) {

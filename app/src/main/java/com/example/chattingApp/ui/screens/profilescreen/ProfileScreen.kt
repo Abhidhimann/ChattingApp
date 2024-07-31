@@ -65,9 +65,8 @@ import com.example.chattingApp.R
 import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.domain.model.tempUserProfile
 import com.example.chattingApp.ui.screens.Screen
-import com.example.chattingApp.ui.screens.forgotpassword.ForgotPasswordEvent
-import com.example.chattingApp.utils.ToastUtil
-import com.example.chattingApp.viewModel.ProfileScreenViewModel
+import com.example.chattingApp.ui.util.ToastUtil
+import com.example.chattingApp.viewmodels.ProfileScreenViewModel
 
 @Composable
 fun ProfileScreenRoot(userId: String, navController: NavController) {

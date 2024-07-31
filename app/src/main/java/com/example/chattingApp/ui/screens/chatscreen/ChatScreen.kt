@@ -22,7 +22,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -57,10 +56,10 @@ import androidx.navigation.NavController
 import com.example.chattingApp.domain.model.Message
 import com.example.chattingApp.domain.model.MessageType
 import com.example.chattingApp.domain.model.tempMessageList
-import com.example.chattingApp.utils.CenterAlignedCommonAppBar
-import com.example.chattingApp.utils.ToastUtil
+import com.example.chattingApp.ui.util.CenterAlignedCommonAppBar
+import com.example.chattingApp.ui.util.ToastUtil
 import com.example.chattingApp.utils.tempTag
-import com.example.chattingApp.viewModel.ChatViewModel
+import com.example.chattingApp.viewmodels.ChatViewModel
 import kotlinx.coroutines.launch
 
 

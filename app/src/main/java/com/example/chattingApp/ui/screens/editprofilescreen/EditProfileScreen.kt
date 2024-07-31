@@ -31,17 +31,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.example.chattingApp.domain.model.UserGender
-import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.domain.model.tempUserProfile
-import com.example.chattingApp.ui.BottomNavItem
 import com.example.chattingApp.ui.screens.Screen
 import com.example.chattingApp.ui.screens.profilescreen.ProfilePicture
 import com.example.chattingApp.ui.screens.profilescreen.SimpleScreenAppBar
-import com.example.chattingApp.utils.SimpleLoadingScreen
-import com.example.chattingApp.utils.ToastUtil
+import com.example.chattingApp.ui.util.SimpleLoadingScreen
+import com.example.chattingApp.ui.util.ToastUtil
 import com.example.chattingApp.utils.Validation.validateName
-import com.example.chattingApp.utils.rememberImagePickerLauncher
-import com.example.chattingApp.viewModel.EditProfileViewModel
+import com.example.chattingApp.ui.util.rememberImagePickerLauncher
+import com.example.chattingApp.viewmodels.EditProfileViewModel
 
 
 @Composable

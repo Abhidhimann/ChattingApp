@@ -1,4 +1,4 @@
-package com.example.chattingApp.viewModel
+package com.example.chattingApp.viewmodels
 
 import android.util.Log
 import androidx.compose.runtime.getValue
@@ -10,11 +10,9 @@ import com.example.chattingApp.domain.repository.AuthRepository
 import com.example.chattingApp.ui.screens.signupscreen.SignUpScreenEvent
 import com.example.chattingApp.ui.screens.signupscreen.SignUpScreenState
 import com.example.chattingApp.utils.ResultResponse
-import com.example.chattingApp.utils.SignInException
 import com.example.chattingApp.utils.SignUpException
 import com.example.chattingApp.utils.classTag
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 

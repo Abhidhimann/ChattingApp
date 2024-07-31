@@ -13,11 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -41,16 +37,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.chattingApp.ui.screens.Screen
 import com.example.chattingApp.ui.screens.profilescreen.SimpleScreenAppBar
-import com.example.chattingApp.ui.screens.signupscreen.SignUpScreenEvent
-import com.example.chattingApp.ui.screens.signupscreen.SignUpScreenState
-import com.example.chattingApp.utils.SpannableString
-import com.example.chattingApp.utils.ToastUtil
+import com.example.chattingApp.ui.util.ToastUtil
 import com.example.chattingApp.utils.Validation.validateEmail
-import com.example.chattingApp.utils.Validation.validatePassword
-import com.example.chattingApp.viewModel.ForgotPasswordViewModel
-import com.example.chattingApp.viewModel.SignInViewModel
+import com.example.chattingApp.viewmodels.ForgotPasswordViewModel
 
 @Composable
 fun ForgotPasswordScreenRoot(navController: NavController) {
