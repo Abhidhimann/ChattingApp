@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.chattingApp.domain.repository.AuthRepository
 import com.example.chattingApp.domain.repository.UserServiceRepository
 import com.example.chattingApp.ui.screens.profilescreen.ProfileScreenEvent
 import com.example.chattingApp.ui.screens.profilescreen.ProfileScreenState
@@ -18,7 +19,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileScreenViewModel @Inject constructor(
-    private val repository: UserServiceRepository
+    private val userServiceRepo: UserServiceRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     var state by mutableStateOf(ProfileScreenState())
@@ -47,7 +49,7 @@ class ProfileScreenViewModel @Inject constructor(
 
     private fun fetchUserProfile(userId: String) = viewModelScope.launch {
         state = state.copy(isLoading = true)
-        state = when (val userProfileResult = repository.getUserProfileDetails(userId)) {
+        state = when (val userProfileResult = userServiceRepo.getUserProfileDetails(userId)) {
             is ResultResponse.Success -> {
                 state.copy(userProfile = userProfileResult.data, isLoading = false)
             }
@@ -60,7 +62,7 @@ class ProfileScreenViewModel @Inject constructor(
 
     private fun fetchSelfProfile() = viewModelScope.launch {
         state = state.copy(isLoading = true)
-        state = when (val userProfileResult = repository.getSelfProfileDetails()) {
+        state = when (val userProfileResult = userServiceRepo.getSelfProfileDetails()) {
             is ResultResponse.Success -> {
                 state.copy(userProfile = userProfileResult.data, isLoading = false)
             }
@@ -72,7 +74,7 @@ class ProfileScreenViewModel @Inject constructor(
     }
 
     private fun logOut() = viewModelScope.launch {
-        when (val result = repository.logOut()) {
+        when (val result = authRepository.logOut()) {
             is ResultResponse.Success -> {
                 state = state.copy(isLogoutSuccess = true)
             }

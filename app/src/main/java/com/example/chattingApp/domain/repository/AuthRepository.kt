@@ -9,4 +9,5 @@ interface AuthRepository {
     suspend fun getAuthState(): Flow<Boolean>
     suspend fun signInWithGoogleSso(): ResultResponse<Unit>
     suspend fun sendPasswordResetEmail(email: String): ResultResponse<Unit>
+    suspend fun logOut(): ResultResponse<Unit>
 }

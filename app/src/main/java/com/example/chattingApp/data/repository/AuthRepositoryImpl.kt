@@ -161,6 +161,12 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun logOut(): ResultResponse<Unit> {
+        return withContext(Dispatchers.IO) {
+            authService.logOut()
+        }
+    }
+
     private fun saveUserInPref(userSummary: UserSummary) {
         appPrefs.edit().apply {
             this.putString("user_id", userSummary.userId)

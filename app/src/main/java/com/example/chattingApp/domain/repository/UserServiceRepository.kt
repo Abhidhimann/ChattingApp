@@ -18,5 +18,4 @@ interface UserServiceRepository {
     suspend fun removeConnectionRequestBySelf(toUserId: String): ResultResponse<Unit>
     suspend fun acceptConnectionRequest(fromUser: UserSummary): ResultResponse<Unit>
     suspend fun uploadUserPic(imageUri: Uri): ResultResponse<String>
-    suspend fun logOut(): ResultResponse<Unit>
 }

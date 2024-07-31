@@ -209,6 +209,7 @@ class UserServiceRepositoryImpl @Inject constructor(
         }
     }
 
+    // user's all files we will keep at userPictures/userId folder
     override suspend fun uploadUserPic(imageUri: Uri): ResultResponse<String> {
         val fromUser =
             getUser() ?: return ResultResponse.Failed(Exception("Error in getting userId"))
@@ -222,17 +223,10 @@ class UserServiceRepositoryImpl @Inject constructor(
                 Log.i(classTag(), "unable to compress image uri is null")
                 return@withContext ResultResponse.Failed(Exception("unable to compress image uri is null"))
             }
-            // user all files we will keep at userPictures/userId folder
             return@withContext imageService.uploadImageToFirebaseStorage(
                 "userPictures/${fromUser.userId}/${fromUser.userId}",
                 resultUri
             )
-        }
-    }
-
-    override suspend fun logOut(): ResultResponse<Unit> {
-        return withContext(Dispatchers.IO) {
-            authService.logOut()
         }
     }
 }
