@@ -1,4 +1,4 @@
-package com.example.chattingApp.data.remote.user
+package com.example.chattingApp.data.remote.services.user
 
 import android.util.Log
 import com.example.chattingApp.data.remote.dto.SingleChatResponse
@@ -46,7 +46,7 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
     override suspend fun updateUserProfile(userProfile: UserProfileResponse): ResultResponse<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                db.collection("users_details").document(userProfile.userId).set(userProfile)
+                db.collection("users_details").document(userProfile.userId).update(userProfile.toMap())
                     .await()
                 return@withContext ResultResponse.Success(Unit)
             } catch (e: Exception) {
@@ -324,6 +324,31 @@ class UserServiceImp(private val db: FirebaseFirestore) : UserService {
                 return@withContext ResultResponse.Success(Unit)
             } catch (e: Exception) {
                 Log.e(classTag(), "Error in acceptConnectRequestAndCreateChat: $e")
+                return@withContext ResultResponse.Failed(e)
+            }
+        }
+    }
+
+    override suspend fun updateCurrentChatRoom(
+        userId: String,
+        chatId: String?
+    ): ResultResponse<Unit> {
+        return withContext(Dispatchers.IO){
+            try {
+                db.collection("users_details").document(userId).update("current_chat_room", chatId).await()
+                return@withContext ResultResponse.Success(Unit)
+            } catch (e: Exception){
+                return@withContext ResultResponse.Failed(e)
+            }
+        }
+    }
+
+    override suspend fun updateUserToken(userId: String, token: String?): ResultResponse<Unit> {
+        return withContext(Dispatchers.IO){
+            try {
+                db.collection("users_details").document(userId).update("token", token).await()
+                return@withContext ResultResponse.Success(Unit)
+            } catch (e: Exception){
                 return@withContext ResultResponse.Failed(e)
             }
         }

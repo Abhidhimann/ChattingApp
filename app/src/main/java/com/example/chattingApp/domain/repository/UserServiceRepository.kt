@@ -1,6 +1,7 @@
 package com.example.chattingApp.domain.repository
 
 import android.net.Uri
+import androidx.browser.trusted.Token
 import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.domain.model.UserSummary
 import com.example.chattingApp.utils.ResultResponse
@@ -18,4 +19,8 @@ interface UserServiceRepository {
     suspend fun removeConnectionRequestBySelf(toUserId: String): ResultResponse<Unit>
     suspend fun acceptConnectionRequest(fromUser: UserSummary): ResultResponse<Unit>
     suspend fun uploadUserPic(imageUri: Uri): ResultResponse<String>
+    suspend fun updateCurrentChatRoom(chatId: String?): ResultResponse<Unit>
+    suspend fun updateUserToken(token: String?): ResultResponse<Unit>
+    suspend fun updateUserTokenFromLocal(): ResultResponse<Unit>
+    suspend fun saveUserTokenLocally(token: String?)
 }

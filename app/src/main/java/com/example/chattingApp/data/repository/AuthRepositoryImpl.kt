@@ -2,8 +2,8 @@ package com.example.chattingApp.data.repository
 
 import android.content.SharedPreferences
 import android.util.Log
-import com.example.chattingApp.data.remote.auth.AuthService
-import com.example.chattingApp.data.remote.user.UserService
+import com.example.chattingApp.data.remote.services.auth.AuthService
+import com.example.chattingApp.data.remote.services.user.UserService
 import com.example.chattingApp.data.remote.dto.UserProfileResponse
 import com.example.chattingApp.domain.model.UserSummary
 import com.example.chattingApp.domain.repository.AuthRepository

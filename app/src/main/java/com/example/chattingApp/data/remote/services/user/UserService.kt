@@ -1,4 +1,4 @@
-package com.example.chattingApp.data.remote.user
+package com.example.chattingApp.data.remote.services.user
 
 import com.example.chattingApp.data.remote.dto.UserProfileResponse
 import com.example.chattingApp.data.remote.dto.UserSummaryResponse
@@ -18,4 +18,6 @@ interface UserService {
     suspend fun getOutgoingConnectRequestingUsers(userId: String): ResultResponse<List<UserSummaryResponse>>
     suspend fun observeConnectionRequests(userId: String): Flow<UserSummaryResponse?>
     suspend fun acceptConnectRequestAndCreateChat(toUser: UserSummaryResponse, fromUser: UserSummaryResponse): ResultResponse<Unit>
+    suspend fun updateCurrentChatRoom(userId: String, chatId: String?): ResultResponse<Unit>
+    suspend fun updateUserToken(userId: String, token: String?): ResultResponse<Unit>
 }

@@ -4,9 +4,9 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
-import com.example.chattingApp.data.remote.auth.AuthService
-import com.example.chattingApp.data.remote.image.ImageService
-import com.example.chattingApp.data.remote.user.UserService
+import com.example.chattingApp.data.remote.services.auth.AuthService
+import com.example.chattingApp.data.remote.services.image.ImageService
+import com.example.chattingApp.data.remote.services.user.UserService
 import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.domain.model.UserSummary
 import com.example.chattingApp.domain.repository.UserServiceRepository
@@ -39,7 +39,7 @@ class UserServiceRepositoryImpl @Inject constructor(
         val userId = appPrefs.getString("user_id", "")
         val profileImageUrl = appPrefs.getString("profile_url", "")
         val name = appPrefs.getString("user_name", "")
-        if (userId == null || profileImageUrl == null || name == null) return null
+        if (userId.isNullOrEmpty() || profileImageUrl == null || name == null) return null
         return UserSummary(name = name, profileImageUrl = profileImageUrl, userId = userId)
     }
 
@@ -228,5 +228,58 @@ class UserServiceRepositoryImpl @Inject constructor(
                 resultUri
             )
         }
+    }
+
+    override suspend fun updateCurrentChatRoom(chatId: String?): ResultResponse<Unit> {
+        return withContext(Dispatchers.IO) {
+            val selfUser = getUser()
+            if (selfUser == null) {
+                Log.i(tempTag(), "Error in getting userId")
+                return@withContext ResultResponse.Failed(Exception("Error in getting userId"))
+            }
+            return@withContext userService.updateCurrentChatRoom(selfUser.userId, chatId)
+        }
+    }
+
+    override suspend fun updateUserToken(token: String?): ResultResponse<Unit> {
+        return withContext(Dispatchers.IO) {
+            val selfUser = getUser()
+            if (selfUser == null) {
+                Log.i(tempTag(), "Error in getting userId")
+                return@withContext ResultResponse.Failed(Exception("Error in getting userId"))
+            }
+            Log.i(tempTag(), "user is $selfUser")
+            return@withContext userService.updateUserToken(selfUser.userId, token)
+//            when (val result = userService.updateUserToken(selfUser.userId, token)) {
+//                is ResultResponse.Success -> {
+//                    appPrefs.edit().putString("token", token).apply()
+//                    return@withContext ResultResponse.Success(Unit)
+//                }
+//
+//                is ResultResponse.Failed -> {
+//                    return@withContext ResultResponse.Failed(result.exception)
+//                }
+//            }
+        }
+    }
+
+    override suspend fun updateUserTokenFromLocal(): ResultResponse<Unit> {
+        return withContext(Dispatchers.IO) {
+            val selfUser = getUser()
+            if (selfUser == null) {
+                Log.i(tempTag(), "Error in getting userId")
+                return@withContext ResultResponse.Failed(Exception("Error in getting userId"))
+            }
+            val token = appPrefs.getString("token", null)
+            if (token == null) {
+                Log.e(classTag(), "token is null")
+                return@withContext ResultResponse.Failed(Exception("token is null"))
+            }
+            return@withContext userService.updateUserToken(selfUser.userId, token)
+        }
+    }
+
+    override suspend fun saveUserTokenLocally(token: String?) = withContext(Dispatchers.IO) {
+        appPrefs.edit().putString("token", token).apply()
     }
 }

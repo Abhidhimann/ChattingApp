@@ -29,7 +29,11 @@ data class UserProfileResponse(
     @get:PropertyName("email")
     @set:PropertyName("email")
     var email: String = "",
-) {
+    @get:PropertyName("current_chat_room")
+    @set:PropertyName("current_chat_room")
+    var currentChatRoom: String? = null,
+    val token: String? = null
+) { // todo will remove currentChatRoom & token
     fun toUserProfile(): UserProfile {
         val gender = when (gender) {
             UserGender.MALE.value -> UserGender.MALE
@@ -47,7 +51,18 @@ data class UserProfileResponse(
             aboutMe = aboutMe,
             interests = interests,
             online = online,
-            email = email
+            email = email,
+            currentChatRoom = currentChatRoom
+        )
+    }
+
+    fun toMap(): Map<String, Any?> {
+        return mapOf(
+            "name" to name,
+            "profile_img_url" to profileImageUrl,
+            "gender" to gender,
+            "about_me" to aboutMe,
+            "interests" to interests
         )
     }
 }

@@ -2,9 +2,9 @@ package com.example.chattingApp.data.repository
 
 import android.content.SharedPreferences
 import android.util.Log
-import com.example.chattingApp.data.remote.chatsocket.ChatSocketService
-import com.example.chattingApp.data.remote.singlechat.SingleChatService
+import com.example.chattingApp.data.remote.services.singlechat.SingleChatService
 import com.example.chattingApp.data.remote.dto.SingleChatResponse
+import com.example.chattingApp.data.remote.services.chatsocket.ChatSocketService
 import com.example.chattingApp.domain.model.Conversation
 import com.example.chattingApp.domain.model.Message
 import com.example.chattingApp.domain.model.UserSummary

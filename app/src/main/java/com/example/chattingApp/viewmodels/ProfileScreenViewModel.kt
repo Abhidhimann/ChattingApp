@@ -15,6 +15,7 @@ import com.example.chattingApp.utils.classTag
 import com.example.chattingApp.utils.tempTag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.annotation.meta.When
 import javax.inject.Inject
 
 @HiltViewModel
@@ -74,9 +75,23 @@ class ProfileScreenViewModel @Inject constructor(
     }
 
     private fun logOut() = viewModelScope.launch {
-        when (val result = authRepository.logOut()) {
+        when (val result = userServiceRepo.updateUserToken(null)) {
             is ResultResponse.Success -> {
-                state = state.copy(isLogoutSuccess = true)
+                when (val result2 = authRepository.logOut()) {
+                    is ResultResponse.Success -> {
+                        // todo clear all saved app prefs except user token
+                        state = state.copy(isLogoutSuccess = true)
+                    }
+
+                    is ResultResponse.Failed -> {
+                        Log.i(classTag(), "logout failed with ${result2.exception}")
+                        userServiceRepo.updateUserTokenFromLocal()
+                        state = state.copy(
+                            isLogoutSuccess = false,
+                            errorMessage = "Some error occurred. Please try again later."
+                        )
+                    }
+                }
             }
 
             is ResultResponse.Failed -> {
@@ -88,5 +103,4 @@ class ProfileScreenViewModel @Inject constructor(
             }
         }
     }
-
 }

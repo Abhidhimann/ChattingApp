@@ -21,6 +21,7 @@ import com.example.chattingApp.ui.screens.Screen
 import com.example.chattingApp.ui.theme.ChattingAppTheme
 import com.example.chattingApp.utils.classTag
 import com.example.chattingApp.viewmodels.UserAuthStateViewModel
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
 
 

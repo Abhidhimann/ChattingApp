@@ -4,17 +4,18 @@ import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.credentials.CredentialManager
-import com.example.chattingApp.data.remote.auth.AuthService
-import com.example.chattingApp.data.remote.auth.AuthServiceImpl
-import com.example.chattingApp.data.remote.chatsocket.ChatSocketService
-import com.example.chattingApp.data.remote.chatsocket.ChatSocketServiceImp
-import com.example.chattingApp.data.remote.auth.GoogleAuthClient
-import com.example.chattingApp.data.remote.image.ImageService
-import com.example.chattingApp.data.remote.image.ImageServiceImpl
-import com.example.chattingApp.data.remote.singlechat.SingleChatService
-import com.example.chattingApp.data.remote.singlechat.SingleChatServiceImp
-import com.example.chattingApp.data.remote.user.UserService
-import com.example.chattingApp.data.remote.user.UserServiceImp
+import com.example.app.data.NotificationHelper
+import com.example.chattingApp.data.remote.services.auth.AuthService
+import com.example.chattingApp.data.remote.services.auth.AuthServiceImpl
+import com.example.chattingApp.data.remote.services.auth.GoogleAuthClient
+import com.example.chattingApp.data.remote.services.chatsocket.ChatSocketService
+import com.example.chattingApp.data.remote.services.chatsocket.ChatSocketServiceImp
+import com.example.chattingApp.data.remote.services.image.ImageService
+import com.example.chattingApp.data.remote.services.image.ImageServiceImpl
+import com.example.chattingApp.data.remote.services.singlechat.SingleChatService
+import com.example.chattingApp.data.remote.services.singlechat.SingleChatServiceImp
+import com.example.chattingApp.data.remote.services.user.UserService
+import com.example.chattingApp.data.remote.services.user.UserServiceImp
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -102,10 +103,10 @@ class AppModules {
         return SingleChatServiceImp(firebaseDatabase)
     }
 
-//    @Provides
-//    @Singleton
-//    fun providesFirebaseMessageService(): FirebaseMessageService {
-//        return FirebaseMessageService()
-//    }
+    @Provides
+    @Singleton
+    fun provideNotificationHelper(@ApplicationContext context: Context): NotificationHelper {
+        return NotificationHelper(context)
+    }
 
 }

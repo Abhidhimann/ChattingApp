@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.chattingApp.domain.repository.AuthRepository
+import com.example.chattingApp.domain.repository.UserServiceRepository
 import com.example.chattingApp.ui.screens.signin.SignInScreenEvent
 import com.example.chattingApp.ui.screens.signin.SignInScreenState
 import com.example.chattingApp.utils.ResultResponse
@@ -18,7 +19,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SignInViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val userServiceRepository: UserServiceRepository,
 ) : ViewModel() {
 
     var state by mutableStateOf(SignInScreenState())
@@ -43,7 +45,7 @@ class SignInViewModel @Inject constructor(
         when (val result = authRepository.signInUsingEmailAndPassword(email, password)) {
             is ResultResponse.Success -> {
                 Log.i(classTag(), "Sign in successful ${result.data}")
-                state = state.copy(isSingInSuccess = true, isLoading = false)
+                doSignIn()
             }
 
             is ResultResponse.Failed -> {
@@ -73,7 +75,7 @@ class SignInViewModel @Inject constructor(
         when (val result = authRepository.signInWithGoogleSso()) {
             is ResultResponse.Success -> {
                 Log.i(classTag(), "Sign in successful ${result.data}")
-                state = state.copy(isSingInSuccess = true, isLoading = false)
+                doSignIn()
             }
 
             is ResultResponse.Failed -> {
@@ -82,6 +84,23 @@ class SignInViewModel @Inject constructor(
                     isLoading = false,
                     isSingInSuccess = false,
                     errorMessage = "Some error occurred. Please try again later or sign up using email address."
+                )
+            }
+        }
+    }
+
+    private fun doSignIn() = viewModelScope.launch {
+        when (val result2 = userServiceRepository.updateUserTokenFromLocal()) {
+            is ResultResponse.Success -> {
+                state = state.copy(isSingInSuccess = true, isLoading = false)
+            }
+
+            is ResultResponse.Failed -> {
+                Log.e(classTag(), "error in token updating ${result2.exception}")
+                state = state.copy(
+                    isLoading = false,
+                    isSingInSuccess = false,
+                    errorMessage = "Some error occurred. Please try again later."
                 )
             }
         }

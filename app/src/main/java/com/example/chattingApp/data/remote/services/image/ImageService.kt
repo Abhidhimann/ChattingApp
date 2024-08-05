@@ -1,4 +1,4 @@
-package com.example.chattingApp.data.remote.image
+package com.example.chattingApp.data.remote.services.image
 
 import android.net.Uri
 import com.example.chattingApp.utils.ResultResponse

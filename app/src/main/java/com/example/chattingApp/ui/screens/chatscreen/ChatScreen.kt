@@ -85,12 +85,20 @@ fun ChatScreen(chatId: String, state: ChatScreenState, onEvent: (ChatScreenEvent
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(key1 = lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_START) {
-                lifecycleOwner.lifecycleScope.launch {
-                    onEvent(ChatScreenEvent.GetConversationDetails(chatId))
-                    onEvent(ChatScreenEvent.ObserverMessages(chatId)) // here get conversation id by state
-                    // maybe can launch them parallel
+            when (event) {
+                Lifecycle.Event.ON_START -> {
+                    lifecycleOwner.lifecycleScope.launch {
+                        onEvent(ChatScreenEvent.GetConversationDetails(chatId))
+                        onEvent(ChatScreenEvent.ObserverMessages(chatId)) // here get conversation id by state
+                        // maybe can launch them parallel
+                    }
                 }
+
+                Lifecycle.Event.ON_PAUSE -> {
+                    onEvent(ChatScreenEvent.UpdateCurrentChatRoom(null))
+                }
+
+                else -> Unit
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -100,7 +108,7 @@ fun ChatScreen(chatId: String, state: ChatScreenState, onEvent: (ChatScreenEvent
     }
 
     LaunchedEffect(state.isChatDetailsFetchSuccess) {
-        if (state.isChatDetailsFetchSuccess == false) {
+        if (!state.isChatDetailsFetchSuccess) {
             ToastUtil.shortToast(context.applicationContext, "Some error occurred")
             onEvent(ChatScreenEvent.OnBackButtonPressed)
         }

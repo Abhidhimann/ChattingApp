@@ -12,6 +12,7 @@ data class UserProfile(
     var interests: String,
     var online: Boolean,
     var email: String,
+    var currentChatRoom: String? = null,
     var incomingRequests: List<UserSummary> = emptyList(),
     var outgoingRequests: List<UserSummary> = emptyList(),
     var friends: List<UserSummary> = emptyList(),
@@ -26,7 +27,8 @@ data class UserProfile(
             aboutMe = aboutMe,
             interests = interests,
             online = online,
-            email = email
+            email = email,
+            currentChatRoom = currentChatRoom
         )
     }
 

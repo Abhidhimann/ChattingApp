@@ -9,6 +9,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.chattingApp.domain.model.Conversation
 import com.example.chattingApp.domain.model.Message
 import com.example.chattingApp.domain.repository.ChatRepository
+import com.example.chattingApp.domain.repository.ConversationRepository
+import com.example.chattingApp.domain.repository.UserServiceRepository
 import com.example.chattingApp.ui.screens.chatscreen.ChatScreenEvent
 import com.example.chattingApp.ui.screens.chatscreen.ChatScreenState
 import com.example.chattingApp.utils.ResultResponse
@@ -22,7 +24,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatViewModel @Inject constructor(
 //    private val chatSocketService: ChatSocketService,
-    private val chatRepository: ChatRepository
+    private val chatRepository: ChatRepository,
+    private val userServiceRepository: UserServiceRepository
 ) : ViewModel() {
 
     var state by mutableStateOf(ChatScreenState())
@@ -40,6 +43,11 @@ class ChatViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    // todo kind of bad ( don't know) will think about later
+    private fun updateCurrentChatRoom(chatId: String?) = viewModelScope.launch {
+        userServiceRepository.updateCurrentChatRoom(chatId)
     }
 
     private fun observeMessages(conversationId: String) {
@@ -80,6 +88,7 @@ class ChatViewModel @Inject constructor(
             when (val conversationResult = chatRepository.getConversationDetails(conversationId)) {
                 is ResultResponse.Success -> {
                     conversation = conversationResult.data
+                    updateCurrentChatRoom(conversationId)
                 }
 
                 is ResultResponse.Failed -> {
@@ -103,6 +112,10 @@ class ChatViewModel @Inject constructor(
             is ChatScreenEvent.GetConversationDetails -> {
                 // later replace it by db call
                 getConversationDetails(event.conversationId)
+            }
+
+            is ChatScreenEvent.UpdateCurrentChatRoom -> {
+                updateCurrentChatRoom(event.chatId)
             }
 
             else -> Unit
