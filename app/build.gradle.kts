@@ -94,8 +94,12 @@ dependencies {
     // ser
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
-    // json
-    implementation("com.squareup.retrofit2:converter-gson:2.5.0")
+    // Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+
+    // Gson
+    implementation("com.squareup.retrofit2:converter-scalars:2.1.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
     // coil
     implementation("io.coil-kt:coil-compose:2.6.0")

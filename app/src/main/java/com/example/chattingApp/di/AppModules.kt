@@ -12,10 +12,13 @@ import com.example.chattingApp.data.remote.services.chatsocket.ChatSocketService
 import com.example.chattingApp.data.remote.services.chatsocket.ChatSocketServiceImp
 import com.example.chattingApp.data.remote.services.image.ImageService
 import com.example.chattingApp.data.remote.services.image.ImageServiceImpl
+import com.example.chattingApp.data.remote.services.pns.PnsService
 import com.example.chattingApp.data.remote.services.singlechat.SingleChatService
 import com.example.chattingApp.data.remote.services.singlechat.SingleChatServiceImp
 import com.example.chattingApp.data.remote.services.user.UserService
 import com.example.chattingApp.data.remote.services.user.UserServiceImp
+import com.example.chattingApp.utils.Api
+import com.example.chattingApp.utils.RetroFitClientHelper
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -109,4 +112,11 @@ class AppModules {
         return NotificationHelper(context)
     }
 
+    @Provides
+    @Singleton
+    fun providesPnsService(): PnsService {
+        return RetroFitClientHelper().getApiClient(Api.PNS_BASE_URL.getValue())
+            .create(PnsService::class.java)
+        // instead of RetroFitClientHelper() can user simple, but i like RetroFitClientHelper class
+    }
 }

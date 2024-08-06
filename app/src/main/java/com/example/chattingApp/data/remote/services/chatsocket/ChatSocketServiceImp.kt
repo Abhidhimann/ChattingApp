@@ -17,7 +17,7 @@ import kotlinx.coroutines.withContext
 
 class ChatSocketServiceImp(private val db: FirebaseFirestore) : ChatSocketService {
 
-    override suspend fun sendMessage(messageResponse: MessageResponse): ResultResponse<Unit> {
+    override suspend fun sendMessage(messageResponse: MessageResponse): ResultResponse<String> {
         return withContext(Dispatchers.IO) {
             try {
                 val result = db.runTransaction { transaction ->
@@ -33,11 +33,14 @@ class ChatSocketServiceImp(private val db: FirebaseFirestore) : ChatSocketServic
                         docRef,
                         "messageId",
                         docRef.id
-                    ) // Update the document with the generated ID
+                    )
                     docRef.id // Return the document ID from the transaction
                 }.await()
                 Log.i(classTag(), "message added")
-                return@withContext ResultResponse.Success(Unit)
+                if (result == null) {
+                    return@withContext ResultResponse.Failed(Exception("Result is null"))
+                }
+                return@withContext ResultResponse.Success(result)
             } catch (e: Exception) {
                 Log.i(classTag(), "error in adding message $e")
                 return@withContext ResultResponse.Failed(e)

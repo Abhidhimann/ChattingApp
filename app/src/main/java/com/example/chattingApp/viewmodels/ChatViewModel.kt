@@ -10,6 +10,7 @@ import com.example.chattingApp.domain.model.Conversation
 import com.example.chattingApp.domain.model.Message
 import com.example.chattingApp.domain.repository.ChatRepository
 import com.example.chattingApp.domain.repository.ConversationRepository
+import com.example.chattingApp.domain.repository.PnsRepository
 import com.example.chattingApp.domain.repository.UserServiceRepository
 import com.example.chattingApp.ui.screens.chatscreen.ChatScreenEvent
 import com.example.chattingApp.ui.screens.chatscreen.ChatScreenState
@@ -25,7 +26,8 @@ import javax.inject.Inject
 class ChatViewModel @Inject constructor(
 //    private val chatSocketService: ChatSocketService,
     private val chatRepository: ChatRepository,
-    private val userServiceRepository: UserServiceRepository
+    private val userServiceRepository: UserServiceRepository,
+    private val pnsRepository: PnsRepository
 ) : ViewModel() {
 
     var state by mutableStateOf(ChatScreenState())
@@ -36,7 +38,14 @@ class ChatViewModel @Inject constructor(
     private fun sendMessage(message: Message) {
         viewModelScope.launch {
             when (val result = chatRepository.sendMessage(message)) {
-                is ResultResponse.Success -> Unit
+                is ResultResponse.Success -> {
+                    Log.i(classTag(), "message send successfully with id ${result.data}")
+                    pnsRepository.sendMessagePns(
+                        message.conversationId,
+                        result.data,
+                        message.senderId
+                    )
+                }
 
                 is ResultResponse.Failed -> {
                     // mark message as failed in that condition todo
