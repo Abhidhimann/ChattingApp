@@ -30,7 +30,6 @@ import javax.inject.Singleton
 class UserServiceRepositoryImpl @Inject constructor(
     private val userService: UserService,
     private val imageService: ImageService,
-    private val authService: AuthService,
     private val appPrefs: SharedPreferences,
     @ApplicationContext private val applicationContext: Context
 ) : UserServiceRepository {
