@@ -4,7 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.credentials.CredentialManager
-import com.example.app.data.NotificationHelper
+import com.example.chattingApp.ui.util.NotificationHelper
 import com.example.chattingApp.data.remote.services.auth.AuthService
 import com.example.chattingApp.data.remote.services.auth.AuthServiceImpl
 import com.example.chattingApp.data.remote.services.auth.GoogleAuthClient

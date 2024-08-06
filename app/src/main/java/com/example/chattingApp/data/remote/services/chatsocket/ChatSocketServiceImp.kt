@@ -74,4 +74,23 @@ class ChatSocketServiceImp(private val db: FirebaseFirestore) : ChatSocketServic
             }
             awaitClose { listenerRegistration.remove() }
         }
+
+    override suspend fun getMessage(
+        conversationId: String,
+        messageId: String
+    ): ResultResponse<MessageResponse> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val messageResponse = db.collection("singleChat").document(conversationId)
+                    .collection("messages").document(messageId).get().await()
+                    .toObject(MessageResponse::class.java)
+                if (messageResponse == null) {
+                    return@withContext ResultResponse.Failed(Exception("Message response is null"))
+                }
+                return@withContext ResultResponse.Success(messageResponse)
+            } catch (e: Exception) {
+                return@withContext ResultResponse.Failed(e)
+            }
+        }
+    }
 }

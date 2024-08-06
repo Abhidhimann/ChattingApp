@@ -16,31 +16,35 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.compose.rememberNavController
 import com.example.chattingApp.ui.screens.Screen
 import com.example.chattingApp.ui.theme.ChattingAppTheme
+import com.example.chattingApp.utils.START_DESTINATION
 import com.example.chattingApp.utils.classTag
 import com.example.chattingApp.viewmodels.UserAuthStateViewModel
-import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
 
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val startDestination = intent.getStringExtra(START_DESTINATION)
+        Log.i(classTag(), "start des is $startDestination")
         //        enableEdgeToEdge()
         setContent {
             ChattingAppTheme {
-                ChattingApp()
+                ChattingApp(startDestination)
             }
         }
     }
 }
 
 @Composable
-fun ChattingApp() {
+fun ChattingApp(startDestination: String?) {
     val bottomNavItems = BottomNavItem.entries.toTypedArray()
     var showBottomNavBar by remember { mutableStateOf(true) }
     val userAuthStateViewModel: UserAuthStateViewModel = hiltViewModel<UserAuthStateViewModel>()
@@ -58,11 +62,20 @@ fun ChattingApp() {
         }
         if (navController.currentDestination?.route != Screen.SignIn.route) {
             Log.i(classTag(), "navigating to $destination")
-            navController.navigate(destination) {
-                popUpTo(navController.graph.startDestinationId) {
-                    inclusive = true
+            if (!startDestination.isNullOrBlank()) {
+                navController.navigate(startDestination) {
+                    popUpTo(navController.graph.startDestinationId) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
                 }
-                launchSingleTop = true
+            } else {
+                navController.navigate(destination) {
+                    popUpTo(navController.graph.startDestinationId) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
             }
         }
     }
@@ -83,7 +96,10 @@ fun ChattingApp() {
         }
     ) {
         Surface(Modifier.padding(it)) {
-            NavigationHost(navController = navController, Screen.StartUp.route)
+            NavigationHost(
+                navController = navController,
+                Screen.StartUp.route
+            )
         }
     }
 }
@@ -91,7 +107,7 @@ fun ChattingApp() {
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    ChattingApp()
+    ChattingApp(START_DESTINATION)
 }
 
 

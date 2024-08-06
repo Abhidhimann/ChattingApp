@@ -113,12 +113,16 @@ fun ChatScreen(chatId: String, state: ChatScreenState, onEvent: (ChatScreenEvent
             onEvent(ChatScreenEvent.OnBackButtonPressed)
         }
     }
+    var title by remember { mutableStateOf("") }
+    LaunchedEffect(state.conversationDetails) {
+        title = state.conversationDetails?.title?: "Messages"
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             // todo later replace title by name
-            CenterAlignedCommonAppBar(title = "Messages", leftIcon = {
+            CenterAlignedCommonAppBar(title = title, leftIcon = {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     "Back",
@@ -183,7 +187,7 @@ fun ChatMessageItem(message: Message) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(start = 10.dp, end = 10.dp, top = 2.dp, bottom = 2.dp)
+            .padding(start = 14.dp, end = 14.dp, top = 2.dp, bottom = 2.dp)
     ) {
         Box(
             modifier = Modifier
@@ -196,10 +200,10 @@ fun ChatMessageItem(message: Message) {
                         bottomEnd = if (message.type == MessageType.OUTGOING) 0f else 48f
                     )
                 )
-                .background(MaterialTheme.colorScheme.secondary)
+                .background(MaterialTheme.colorScheme.secondaryContainer)
                 .padding(10.dp)
         ) {
-            Text(text = message.textContent)
+            Text(text = message.textContent, color = MaterialTheme.colorScheme.onSecondaryContainer)
         }
     }
 }
@@ -211,7 +215,7 @@ fun MessageInputBox(
 ) {
     var inputTextValue by remember { mutableStateOf(TextFieldValue("")) }
     Row(
-        modifier = modifier.padding(top = 5.dp, bottom = 5.dp, start = 10.dp, end = 10.dp),
+        modifier = modifier.padding(top = 5.dp, bottom = 5.dp, start = 6.dp, end = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(

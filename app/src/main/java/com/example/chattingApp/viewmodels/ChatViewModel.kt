@@ -42,8 +42,10 @@ class ChatViewModel @Inject constructor(
                     Log.i(classTag(), "message send successfully with id ${result.data}")
                     pnsRepository.sendMessagePns(
                         message.conversationId,
+                        conversation!!.title,
                         result.data,
-                        message.senderId
+                        message.senderId,
+                        message.textContent
                     )
                 }
 
@@ -97,6 +99,7 @@ class ChatViewModel @Inject constructor(
             when (val conversationResult = chatRepository.getConversationDetails(conversationId)) {
                 is ResultResponse.Success -> {
                     conversation = conversationResult.data
+                    state = state.copy(conversationDetails = conversation, isChatDetailsFetchSuccess = true)
                     updateCurrentChatRoom(conversationId)
                 }
 

@@ -9,15 +9,19 @@ import retrofit2.http.POST
 interface PnsService {
     @POST("/sendNotification")
     suspend fun sendMessagePns(
-        @Body request: NotificationRequest
+        @Body request: MessageNotification
     ): Response<String>
 }
 
-data class NotificationRequest(
+data class MessageNotification(
     @SerializedName("chatRoomId")
     val chatRoomId: String,
+    @SerializedName("chatRoomTitle")
+    val chatRoomTitle: String,
     @SerializedName("messageId")
     val messageId: String,
     @SerializedName("senderId")
     val senderId: String,
+    @SerializedName("textContent")
+    val textContent: String
 )

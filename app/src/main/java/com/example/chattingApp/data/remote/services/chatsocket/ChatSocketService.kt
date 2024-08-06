@@ -7,4 +7,5 @@ import kotlinx.coroutines.flow.Flow
 interface ChatSocketService {
     suspend fun sendMessage(messageResponse: MessageResponse): ResultResponse<String>
     suspend fun observeMessages(conversationId: String): Flow<MessageResponse>
+    suspend fun getMessage(conversationId: String, messageId: String): ResultResponse<MessageResponse>
 }

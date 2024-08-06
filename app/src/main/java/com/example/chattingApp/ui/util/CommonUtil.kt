@@ -51,6 +51,12 @@ fun rememberImagePickerLauncher(onImagePicked: (Uri?) -> Unit): ManagedActivityR
 }
 
 @Composable
+fun requestPermission(callback: (Boolean) -> Unit) = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+    callback(it)
+}
+
+
+@Composable
 fun SpannableString(
     textQuery: String,
     textClickable: String,

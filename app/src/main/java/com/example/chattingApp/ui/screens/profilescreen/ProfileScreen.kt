@@ -1,5 +1,6 @@
 package com.example.chattingApp.ui.screens.profilescreen
 
+import android.Manifest
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -66,6 +67,7 @@ import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.domain.model.tempUserProfile
 import com.example.chattingApp.ui.screens.Screen
 import com.example.chattingApp.ui.util.ToastUtil
+import com.example.chattingApp.ui.util.requestPermission
 import com.example.chattingApp.viewmodels.ProfileScreenViewModel
 
 @Composable
@@ -105,11 +107,13 @@ fun ProfileScreen(
 ) {
     val context = LocalContext.current.applicationContext
     val lifecycleOwner = LocalLifecycleOwner.current
+    val permission = requestPermission {}
     DisposableEffect(key1 = lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_START -> {
                     onEvent(ProfileScreenEvent.FetchUserProfile(userId))
+                    permission.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
 
                 else -> {}
@@ -128,6 +132,7 @@ fun ProfileScreen(
             ToastUtil.shortToast(context, "Sign out successfully")
         }
     }
+
 
     val userProfile = state.userProfile
     Scaffold(

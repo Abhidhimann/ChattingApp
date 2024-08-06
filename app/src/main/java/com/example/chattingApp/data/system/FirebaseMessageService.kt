@@ -1,10 +1,9 @@
-package com.example.chattingApp.data.remote.services
+package com.example.chattingApp.data.system
 
-import android.content.SharedPreferences
 import android.util.Log
-import com.example.app.data.NotificationHelper
-import com.example.chattingApp.data.remote.services.user.UserService
+import com.example.chattingApp.domain.repository.PnsRepository
 import com.example.chattingApp.domain.repository.UserServiceRepository
+import com.example.chattingApp.ui.util.NotificationHelper
 import com.example.chattingApp.utils.classTag
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage
@@ -20,24 +19,29 @@ class FirebaseMessageService @Inject constructor(
 ) : FirebaseMessagingService() {
 
 
-    @Inject lateinit var notificationHelper: NotificationHelper
-    @Inject lateinit var userServiceRepository: UserServiceRepository
+    @Inject
+    lateinit var pnsRepository: PnsRepository
+    @Inject
+    lateinit var userServiceRepository: UserServiceRepository
 
     private val myJob = Job()
 
+    private val coroutineScope = CoroutineScope(Dispatchers.IO + myJob)
+
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Log.d(classTag(), "From: " + remoteMessage.from)
-        remoteMessage.data.isNotEmpty().let {
-            Log.d(classTag(), "Message data payload: " + remoteMessage.data)
-        }
-        remoteMessage.notification?.let {
-            Log.d(classTag(), "Message Notification Body: ${it.body}")
+
+        remoteMessage.data.let {
+            Log.d(classTag(), "Message Notification Body: $it")
+            coroutineScope.launch {
+                pnsRepository.handleReceivedPns(it)
+            }
         }
     }
 
     override fun onNewToken(token: String) {
         Log.d(classTag(), "Refresh token is $token")
-        CoroutineScope(Dispatchers.IO + myJob).launch {
+        coroutineScope.launch {
             userServiceRepository.saveUserTokenLocally(token)
             userServiceRepository.updateUserToken(token)
         }

@@ -20,6 +20,7 @@ class ChatApp : Application() {
         saveTokenIfNew()
     }
 
+
     private fun saveTokenIfNew() {
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (!task.isSuccessful) {

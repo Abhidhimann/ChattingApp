@@ -1,25 +1,43 @@
 package com.example.chattingApp.data.repository
 
 import android.util.Log
-import com.example.chattingApp.data.remote.services.pns.NotificationRequest
+import com.example.chattingApp.data.remote.services.pns.MessageNotification
 import com.example.chattingApp.data.remote.services.pns.PnsService
 import com.example.chattingApp.domain.repository.PnsRepository
+import com.example.chattingApp.ui.util.NotificationHelper
 import com.example.chattingApp.utils.ResultResponse
 import com.example.chattingApp.utils.classTag
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import javax.inject.Inject
 
-class PnsRepositoryImpl @Inject constructor(private val pnsService: PnsService) : PnsRepository {
+class PnsRepositoryImpl @Inject constructor(
+    private val pnsService: PnsService,
+    private val notificationHelper: NotificationHelper
+) : PnsRepository {
+
+    private val gson = Gson()
     override suspend fun sendMessagePns(
         chatRoomId: String,
+        chatRoomTitle: String,
         messageId: String,
-        senderId: String
+        senderId: String,
+        textContent: String
     ): ResultResponse<Unit> {
         return withContext(Dispatchers.IO) {
             try {
                 val response =
-                    pnsService.sendMessagePns(NotificationRequest(chatRoomId, messageId, senderId))
+                    pnsService.sendMessagePns(
+                        MessageNotification(
+                            chatRoomId,
+                            chatRoomTitle,
+                            messageId,
+                            senderId,
+                            textContent
+                        )
+                    )
                 Log.i(classTag(), "response is ${response.body()}")
                 if (!response.isSuccessful) {
                     return@withContext ResultResponse.Failed(Exception("No response"))
@@ -33,5 +51,43 @@ class PnsRepositoryImpl @Inject constructor(private val pnsService: PnsService) 
                 return@withContext ResultResponse.Failed(Exception("Failed with exception $e"))
             }
         }
+    }
+
+    override suspend fun handleReceivedPns(pns: Map<String, String>): ResultResponse<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val pnsType = pns["pnsType"]
+                val body = pns["body"]
+
+                if (pnsType == null || body == null) {
+                    return@withContext ResultResponse.Failed(Exception("Invalid PNS data"))
+                }
+
+//                val bodyJson = JSONObject(body)
+
+                return@withContext when (pnsType) {
+                    "message" -> {
+                        val messageNotificationBody =
+                            gson.fromJson(body, MessageNotification::class.java)
+                                ?: return@withContext ResultResponse.Failed(Exception("Pns body is unknown"))
+                        Log.i(classTag(), "message notification is $messageNotificationBody")
+                        handleMessageNotification(messageNotificationBody)
+                        ResultResponse.Success(Unit)
+                    }
+
+                    else -> {
+                        ResultResponse.Failed(Exception("Unknown pns"))
+                    }
+                }
+            } catch (e: Exception) {
+                return@withContext ResultResponse.Failed(e)
+            }
+        }
+    }
+
+
+    private suspend fun handleMessageNotification(messageNotification: MessageNotification)  = withContext(Dispatchers.IO){
+        // todo get message and then save in local db after that send notification
+        notificationHelper.sendNotification(messageNotification)
     }
 }
