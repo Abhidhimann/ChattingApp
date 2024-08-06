@@ -9,13 +9,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.chattingApp.domain.repository.AuthRepository
 import com.example.chattingApp.domain.repository.UserServiceRepository
-import com.example.chattingApp.utils.ResultResponse
 import com.example.chattingApp.utils.classTag
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel

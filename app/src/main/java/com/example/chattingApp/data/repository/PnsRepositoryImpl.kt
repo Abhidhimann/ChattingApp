@@ -1,7 +1,7 @@
 package com.example.chattingApp.data.repository
 
 import android.util.Log
-import com.example.chattingApp.data.remote.services.pns.MessageNotification
+import com.example.chattingApp.data.remote.dto.MessageNotification
 import com.example.chattingApp.data.remote.services.pns.PnsService
 import com.example.chattingApp.domain.repository.PnsRepository
 import com.example.chattingApp.ui.util.NotificationHelper
@@ -10,7 +10,6 @@ import com.example.chattingApp.utils.classTag
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
 import javax.inject.Inject
 
 class PnsRepositoryImpl @Inject constructor(
@@ -62,8 +61,6 @@ class PnsRepositoryImpl @Inject constructor(
                 if (pnsType == null || body == null) {
                     return@withContext ResultResponse.Failed(Exception("Invalid PNS data"))
                 }
-
-//                val bodyJson = JSONObject(body)
 
                 return@withContext when (pnsType) {
                     "message" -> {

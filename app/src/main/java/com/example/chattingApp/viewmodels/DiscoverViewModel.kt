@@ -26,9 +26,6 @@ class DiscoverViewModel @Inject constructor(
     var state by mutableStateOf(DiscoverScreenState())
         private set
 
-//    init {
-//        isUserProfileExists()
-//    }
 
     fun onEvent(event: DiscoverScreenEvent) {
         when (event) {

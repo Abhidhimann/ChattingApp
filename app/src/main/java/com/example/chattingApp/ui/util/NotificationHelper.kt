@@ -12,7 +12,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
 import com.example.chattingApp.R
-import com.example.chattingApp.data.remote.services.pns.MessageNotification
+import com.example.chattingApp.data.remote.dto.MessageNotification
 import com.example.chattingApp.ui.MainActivity
 import com.example.chattingApp.ui.screens.Screen
 import com.example.chattingApp.utils.START_DESTINATION

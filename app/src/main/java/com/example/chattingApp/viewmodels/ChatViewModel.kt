@@ -9,7 +9,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.chattingApp.domain.model.Conversation
 import com.example.chattingApp.domain.model.Message
 import com.example.chattingApp.domain.repository.ChatRepository
-import com.example.chattingApp.domain.repository.ConversationRepository
 import com.example.chattingApp.domain.repository.PnsRepository
 import com.example.chattingApp.domain.repository.UserServiceRepository
 import com.example.chattingApp.ui.screens.chatscreen.ChatScreenEvent

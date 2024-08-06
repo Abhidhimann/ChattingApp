@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
-//import com.google.firebase.database.getValue
 
 class ChatSocketServiceImp(private val db: FirebaseFirestore) : ChatSocketService {
 

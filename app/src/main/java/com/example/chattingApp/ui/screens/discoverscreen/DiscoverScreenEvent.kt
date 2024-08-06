@@ -1,7 +1,6 @@
 package com.example.chattingApp.ui.screens.discoverscreen
 
 import com.example.chattingApp.domain.model.UserProfile
-import com.example.chattingApp.domain.model.UserSummary
 
 sealed class DiscoverScreenEvent {
     data class ConnectToUser(val user: UserProfile) : DiscoverScreenEvent()
