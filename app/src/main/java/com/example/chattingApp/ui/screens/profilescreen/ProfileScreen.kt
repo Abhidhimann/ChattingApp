@@ -1,6 +1,7 @@
 package com.example.chattingApp.ui.screens.profilescreen
 
 import android.Manifest
+import android.os.Build
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -113,7 +114,9 @@ fun ProfileScreen(
             when (event) {
                 Lifecycle.Event.ON_START -> {
                     onEvent(ProfileScreenEvent.FetchUserProfile(userId))
-                    permission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        permission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
                 }
 
                 else -> {}
