@@ -41,7 +41,7 @@ class ChatViewModel @Inject constructor(
                     Log.i(classTag(), "message send successfully with id ${result.data}")
                     pnsRepository.sendMessagePns(
                         message.conversationId,
-                        conversation!!.title,
+                        conversation!!.currentUserName,
                         result.data,
                         message.senderId,
                         message.textContent
