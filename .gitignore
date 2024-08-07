@@ -7,7 +7,7 @@
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
-/.google-services
+app/google-services
 .DS_Store
 /build
 /captures
