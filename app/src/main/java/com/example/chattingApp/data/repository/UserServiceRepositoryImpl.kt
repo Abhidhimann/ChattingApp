@@ -12,8 +12,8 @@ import com.example.chattingApp.domain.model.UserSummary
 import com.example.chattingApp.domain.repository.UserServiceRepository
 import com.example.chattingApp.utils.ResultResponse
 import com.example.chattingApp.utils.classTag
-import com.example.chattingApp.ui.util.compressImageTillSize
-import com.example.chattingApp.ui.util.fileFromContentUri
+import com.example.chattingApp.presentation.ui.util.compressImageTillSize
+import com.example.chattingApp.presentation.ui.util.fileFromContentUri
 import com.example.chattingApp.utils.onSuccess
 import com.example.chattingApp.utils.tempTag
 import dagger.hilt.android.qualifiers.ApplicationContext

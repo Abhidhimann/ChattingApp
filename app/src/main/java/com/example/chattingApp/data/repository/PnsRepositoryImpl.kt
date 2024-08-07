@@ -4,7 +4,7 @@ import android.util.Log
 import com.example.chattingApp.data.remote.dto.MessageNotification
 import com.example.chattingApp.data.remote.services.pns.PnsService
 import com.example.chattingApp.domain.repository.PnsRepository
-import com.example.chattingApp.ui.util.NotificationHelper
+import com.example.chattingApp.presentation.ui.util.NotificationHelper
 import com.example.chattingApp.utils.ResultResponse
 import com.example.chattingApp.utils.classTag
 import com.google.gson.Gson

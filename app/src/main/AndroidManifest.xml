@@ -17,7 +17,7 @@
         android:theme="@style/Theme.ChattingApp"
         tools:targetApi="31">
         <activity
-            android:name="com.example.chattingApp.ui.MainActivity"
+            android:name="com.example.chattingApp.presentation.ui.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.ChattingApp"
