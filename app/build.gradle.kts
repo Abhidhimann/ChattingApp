@@ -1,3 +1,12 @@
+import java.util.Properties
+
+// Load local.properties file
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("project.properties")
+localProperties.load(localPropertiesFile.inputStream())
+
+// Access properties from local.properties
+val webClientId: String = localProperties.getProperty("WEB_CLIENT_ID")
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -18,6 +27,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${webClientId}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
@@ -26,7 +36,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -42,6 +52,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
