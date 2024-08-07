@@ -14,4 +14,7 @@ To build the project, ensure you do the following:
       WEB_CLIENT_ID=your-web-client-id
       ```
 
+3. **Apk file**:
+    https://github.com/Abhidhimann/ChattingApp/blob/chattingAppFirebase/app/release/app-release.apk.zip
+
 For further assistance, refer to the official documentation or open an issue on GitHub.
