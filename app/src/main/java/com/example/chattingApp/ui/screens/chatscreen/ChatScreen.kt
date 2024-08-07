@@ -1,6 +1,7 @@
 package com.example.chattingApp.ui.screens.chatscreen
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -56,6 +57,7 @@ import androidx.navigation.NavController
 import com.example.chattingApp.domain.model.Message
 import com.example.chattingApp.domain.model.MessageType
 import com.example.chattingApp.domain.model.tempMessageList
+import com.example.chattingApp.ui.screens.Screen
 import com.example.chattingApp.ui.util.CenterAlignedCommonAppBar
 import com.example.chattingApp.ui.util.ToastUtil
 import com.example.chattingApp.utils.tempTag
@@ -67,14 +69,28 @@ import kotlinx.coroutines.launch
 fun ChatScreenRoot(chatId: String, navController: NavController) {
     val viewModel: ChatViewModel = hiltViewModel<ChatViewModel>()
 
-    // if action is in ui then handle by lamba function in ui ( live navigation)
+    // if action is in ui then handle by lambda function in ui ( live navigation)
     ChatScreen(chatId = chatId, state = viewModel.state) { event ->
         when (event) {
             is ChatScreenEvent.OnBackButtonPressed -> {
                 navController.popBackStack()
+                navController.navigate(Screen.ChatList.route){
+                    popUpTo(Screen.ChatList.route) {
+                        inclusive = true
+                    }
+                }
             }
 
             else -> viewModel.onEvent(event)
+        }
+    }
+
+    BackHandler {
+        navController.popBackStack()
+        navController.navigate(Screen.ChatList.route){
+            popUpTo(Screen.ChatList.route) {
+                inclusive = true
+            }
         }
     }
 }
