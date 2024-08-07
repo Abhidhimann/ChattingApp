@@ -34,7 +34,8 @@ class SingleChatResponse(
             lastMessage = lastMessage,
             updateAt = updatedAt?.toInstant(),
             participantsIds = participantIds,
-            currentUserId = selfUser.userId
+            currentUserId = selfUser.userId,
+            toUserId = if (selfUser.userId == originator!!.userId) recipient!!.userId else originator!!.userId
         )
     }
 }

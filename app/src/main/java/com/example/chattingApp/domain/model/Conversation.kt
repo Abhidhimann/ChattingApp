@@ -11,7 +11,8 @@ data class Conversation(
     val unReadMessageCount: Int,
     val lastMessage: String,
     val participantsIds: List<String>,
-    val currentUserId: String = ""
+    val currentUserId: String = "",
+    var toUserId: String = ""
 )
 
 val tempConversations = listOf(

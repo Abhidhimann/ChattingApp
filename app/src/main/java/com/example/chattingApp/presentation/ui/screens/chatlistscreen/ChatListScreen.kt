@@ -77,6 +77,18 @@ fun ChatListScreenRoot(navController: NavController) {
                     }
             }
 
+            is ChatListScreenEvent.OtherUserProfileClicked -> {
+                navController.navigate(
+                    Screen.Profile.createRoute(
+                        event.userId
+                    )
+                ){
+                    popUpTo(Screen.SignIn.route){
+                        inclusive = true
+                    }
+                }
+            }
+
             else -> {
                 viewModel.onEvent(event)
             }
@@ -95,7 +107,7 @@ fun ChatListScreen(state: ChatListScreenState, onEvent: (ChatListScreenEvent) ->
                 Lifecycle.Event.ON_START -> {
                     onEvent(ChatListScreenEvent.ObserveConversations)
                     // comment this for preview
-                    permission.launch(Manifest.permission.POST_NOTIFICATIONS)
+//                    permission.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
 
                 else -> {}
@@ -146,9 +158,7 @@ fun UserListContent(
                 .wrapContentHeight(align = Alignment.Top),
         ) {
             items(state.conversations) {
-                ConversationCard(conversation = it) { conversationId ->
-                    onEvent(ChatListScreenEvent.OpenConversation(conversationId))
-                }
+                ConversationCard(conversation = it, onEvent)
             }
         }
     }
@@ -178,13 +188,12 @@ fun ChatScreenMenuActions() {
 }
 
 @Composable
-fun ConversationCard(conversation: Conversation, onClick: (String) -> Unit) {
+fun ConversationCard(conversation: Conversation, onEvent: (ChatListScreenEvent) -> Unit) {
     Surface(
         shape = RectangleShape,
         modifier = Modifier
             .fillMaxWidth()
-            .wrapContentHeight()
-            .clickable { onClick(conversation.conversationId) },
+            .wrapContentHeight(),
         shadowElevation = 2.dp
     ) {
         Row(
@@ -199,7 +208,8 @@ fun ConversationCard(conversation: Conversation, onClick: (String) -> Unit) {
                 conversation.iconUri, modifier = Modifier
                     .padding(4.dp)
                     .size(56.dp)
-                    .padding(4.dp),
+                    .padding(4.dp)
+                    .clickable { onEvent(ChatListScreenEvent.OtherUserProfileClicked(conversation.toUserId)) },
                 elevation = CardDefaults.elevatedCardElevation(0.dp),
                 shapes = CircleShape,
                 border = BorderStroke(
@@ -211,7 +221,9 @@ fun ConversationCard(conversation: Conversation, onClick: (String) -> Unit) {
                 userName = conversation.title,
                 lastText = conversation.lastMessage,
                 updateAt = conversation.updateAt?.atZone(ZoneId.systemDefault())?.toLocalDate(),
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable { onEvent(ChatListScreenEvent.OpenConversation(conversation.conversationId)) }
             )
         }
     }
