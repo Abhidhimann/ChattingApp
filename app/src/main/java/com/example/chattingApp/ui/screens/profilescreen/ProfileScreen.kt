@@ -1,6 +1,5 @@
 package com.example.chattingApp.ui.screens.profilescreen
 
-import android.Manifest
 import android.os.Build
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -22,8 +21,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.Female
+import androidx.compose.material.icons.filled.Male
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Transgender
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CardElevation
@@ -64,11 +65,11 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.chattingApp.R
+import com.example.chattingApp.domain.model.UserGender
 import com.example.chattingApp.domain.model.UserProfile
 import com.example.chattingApp.domain.model.tempUserProfile
 import com.example.chattingApp.ui.screens.Screen
 import com.example.chattingApp.ui.util.ToastUtil
-import com.example.chattingApp.ui.util.requestPermission
 import com.example.chattingApp.viewmodels.ProfileScreenViewModel
 
 @Composable
@@ -213,7 +214,7 @@ fun UserProfileMenuActions(onEvent: (ProfileScreenEvent) -> Unit) {
 fun ProfileScreenContent(userProfile: UserProfile?, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
-            .padding(start = 10.dp, end = 10.dp)
+            .padding(start = 12.dp, end = 12.dp)
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -234,7 +235,8 @@ fun ProfileScreenContent(userProfile: UserProfile?, modifier: Modifier = Modifie
                         height = Dimension.wrapContent
                     }
                     .fillMaxWidth()
-                    .height(400.dp),
+                    .height(400.dp)
+                    .padding(start = 2.dp, end = 2.dp),
                 elevation = CardDefaults.elevatedCardElevation(8.dp),
                 shapes = RoundedCornerShape(10.dp),
                 border = BorderStroke(
@@ -316,7 +318,7 @@ fun ProfileDetails(
                 )
                 Spacer(modifier = Modifier.width(32.dp))
                 Icon(
-                    imageVector = Icons.Default.Face,
+                    imageVector = if (userProfile?.gender == UserGender.MALE) Icons.Filled.Male else if (userProfile?.gender == UserGender.FEMALE) Icons.Filled.Female else Icons.Filled.Transgender,
                     contentDescription = "gender",
                     modifier = Modifier
                         .wrapContentWidth()
