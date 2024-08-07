@@ -108,14 +108,12 @@ fun ProfileScreen(
 ) {
     val context = LocalContext.current.applicationContext
     val lifecycleOwner = LocalLifecycleOwner.current
-    val permission = requestPermission {}
     DisposableEffect(key1 = lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_START -> {
                     onEvent(ProfileScreenEvent.FetchUserProfile(userId))
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        permission.launch(Manifest.permission.POST_NOTIFICATIONS)
                     }
                 }
 

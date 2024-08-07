@@ -1,5 +1,6 @@
 package com.example.chattingApp.ui.screens.chatlistscreen
 
+import android.Manifest
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -48,6 +49,7 @@ import com.example.chattingApp.domain.model.tempConversations
 import com.example.chattingApp.ui.screens.Screen
 import com.example.chattingApp.ui.screens.profilescreen.ProfilePicture
 import com.example.chattingApp.ui.util.CenterAlignedCommonAppBar
+import com.example.chattingApp.ui.util.requestPermission
 import com.example.chattingApp.viewmodels.ChatListViewModel
 import java.time.LocalDate
 import java.time.ZoneId
@@ -86,11 +88,14 @@ fun ChatListScreenRoot(navController: NavController) {
 @Composable
 fun ChatListScreen(state: ChatListScreenState, onEvent: (ChatListScreenEvent) -> Unit) {
     val lifecycleOwner = LocalLifecycleOwner.current
+    val permission = requestPermission {}
     DisposableEffect(key1 = lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_START -> {
                     onEvent(ChatListScreenEvent.ObserveConversations)
+                    // comment this for preview
+                    permission.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
 
                 else -> {}

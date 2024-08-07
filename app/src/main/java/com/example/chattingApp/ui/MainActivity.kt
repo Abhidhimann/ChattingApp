@@ -33,7 +33,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val startDestination = intent.getStringExtra(START_DESTINATION)
-        Log.i(classTag(), "start des is $startDestination")
         //        enableEdgeToEdge()
         setContent {
             ChattingAppTheme {
@@ -53,15 +52,10 @@ fun ChattingApp(startDestination: String?) {
 
 
     LaunchedEffect(userAuthState) {
-        var destination = if (userAuthState == true) {
-            Screen.Profile.route
-        } else if (userAuthState == false) {
-            Screen.SignIn.route
-        } else {
-            Screen.StartUp.route
-        }
-        if (navController.currentDestination?.route != Screen.SignIn.route) {
-            Log.i(classTag(), "navigating to $destination")
+        if (userAuthState == true) {
+            if (navController.currentDestination?.route == Screen.SignIn.route) {
+                return@LaunchedEffect
+            }
             if (!startDestination.isNullOrBlank()) {
                 navController.navigate(startDestination) {
                     popUpTo(navController.graph.startDestinationId) {
@@ -70,12 +64,19 @@ fun ChattingApp(startDestination: String?) {
                     launchSingleTop = true
                 }
             } else {
-                navController.navigate(destination) {
+                navController.navigate(Screen.ChatList.route) {
                     popUpTo(navController.graph.startDestinationId) {
                         inclusive = true
                     }
                     launchSingleTop = true
                 }
+            }
+        } else if (userAuthState == false){
+            navController.navigate(Screen.SignIn.route) {
+                popUpTo(navController.graph.startDestinationId) {
+                    inclusive = true
+                }
+                launchSingleTop = true
             }
         }
     }
