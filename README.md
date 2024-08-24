@@ -1,6 +1,6 @@
 # Chatting App by Abhishek
 
-This is an Android application that lets users discover other users, see their profile and connect with them.
+This Android application allows users to discover and connect with others, view profiles, and engage in real-time one-on-one messaging.
 
 ## Features
 
@@ -26,12 +26,16 @@ Common tech stacks used are:
 - **Material 3**: Apply Material 3 design principles and components to ensure app has a modern and cohesive look.
 - **Firebase Libraries** - Firebase Messaging, Firebase Storage, Firebase Auth & Firestore.
 
+## DEMO
+
+1. **Apk file**: [Chatting App](https://github.com/Abhidhimann/ChattingApp/blob/chattingAppFirebase/app/release/app-release.apk.zip)
+
 ## Prerequisites
 
 To build the project, ensure you do the following:
 
 1. **Add Firebase to App**:
-    - use [this link](https://firebase.google.com/docs/android/setup)
+    - Create a project in the Firebase Console and add your Android app to the project, use [this link](https://firebase.google.com/docs/android/setup)
 
 1. **Add google-services.json to your Firebase Project**:
     - Download the `google-services.json` file provided by firebase and place it in your app's `/app` directory.
@@ -43,7 +47,4 @@ To build the project, ensure you do the following:
       WEB_CLIENT_ID=your-web-client-id
       ```
 
-3. **Apk file**:
-    https://github.com/Abhidhimann/ChattingApp/blob/chattingAppFirebase/app/release/app-release.apk.zip
-
-For further assistance, refer to the official documentation or open an issue on GitHub.
+For further assistance, refer to the official documentation or open an issue.
