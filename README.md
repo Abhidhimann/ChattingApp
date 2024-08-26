@@ -16,7 +16,7 @@ This Android application allows users to discover and connect with others, view 
 
 Common tech stacks used are:
 
-- **Architecture** - MVI Architecture.
+- **Architecture** - MVI + Clean Architecture.
 - **Retrofit + OkHttp** - RESTful API and networking client.
 - **Hilt** - For dependency injection.
 - **Coil** - Image loading library.
@@ -56,5 +56,14 @@ To build the project, ensure you do the following:
       ```properties
       WEB_CLIENT_ID=your-web-client-id
       ```
+**Note**: For FCM, instead of using Cloud Functions, this application utilizes a temporary Node.js server. Please refer to the [server details](https://github.com/Abhidhimann/ChattingApp/blob/chattingAppFirebase/app/src/main/assets/serverdetails). Note that notifications will only function while this server is running. We will explore alternative solutions in the future.
 
 For further assistance, refer to the official documentation or open an issue.
+
+## Suggestions and Feedback
+
+If you have any suggestions or feedback regarding the project, please feel free to reach out to me:
+
+- **Email**: [abhishekdhimaniitg@gmail.com](mailto:abhishekdhimaniitg@gmail.com)
+
+Your input is greatly appreciated and helps improve the project!
