@@ -28,7 +28,17 @@ Common tech stacks used are:
 
 ## DEMO
 
-1. **Apk file**: [Chatting App](https://github.com/Abhidhimann/ChattingApp/blob/chattingAppFirebase/app/release/app-release.apk.zip)
+https://github.com/user-attachments/assets/e878306e-249b-4362-86dc-1bd59e71c8da
+
+https://github.com/user-attachments/assets/7492e308-982e-4703-b5df-ef0320c1f519
+
+https://github.com/user-attachments/assets/b8e83d7d-c93a-4ca5-8728-f63962e80be1
+
+https://github.com/user-attachments/assets/5177304c-5052-4aff-895e-19bf5dc79738
+
+https://github.com/user-attachments/assets/463ea2ed-6b2d-4b15-adb0-b4f3454a06bb
+
+**Apk file**: [Chatting App](https://github.com/Abhidhimann/ChattingApp/blob/chattingAppFirebase/app/release/app-release.apk.zip)
 
 ## Prerequisites
 
