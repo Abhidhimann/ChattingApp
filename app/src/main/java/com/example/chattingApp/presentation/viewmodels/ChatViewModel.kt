@@ -13,6 +13,7 @@ import com.example.chattingApp.domain.repository.PnsRepository
 import com.example.chattingApp.domain.repository.UserServiceRepository
 import com.example.chattingApp.presentation.ui.screens.chatscreen.ChatScreenEvent
 import com.example.chattingApp.presentation.ui.screens.chatscreen.ChatScreenState
+import com.example.chattingApp.utils.MAX_MESSAGE_COUNT_FOR_SUMMARIZE
 import com.example.chattingApp.utils.ResultResponse
 import com.example.chattingApp.utils.classTag
 import com.example.chattingApp.utils.tempTag
@@ -20,6 +21,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.min
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
@@ -112,6 +114,32 @@ class ChatViewModel @Inject constructor(
         }
     }
 
+    private fun summarizeConversation(messages: List<Message>) {
+        viewModelScope.launch {
+            state = state.copy(
+                isSummaryInProgress = true
+            )
+            val messageSize = min(messages.size, MAX_MESSAGE_COUNT_FOR_SUMMARIZE);
+            when (val result =
+                chatRepository.summarizeConversation(messages.reversed().subList(0, messageSize))) {
+                is ResultResponse.Success -> {
+                    state = state.copy(
+                        conversationSummary = result.data.content,
+                        isSummaryInProgress = false,
+                        isSummarySuccess = true
+                    )
+                }
+
+                is ResultResponse.Failed -> {
+                    state = state.copy(
+                        isSummaryInProgress = false,
+                        isSummarySuccess = false,
+                    )
+                }
+            }
+        }
+    }
+
     fun onEvent(event: ChatScreenEvent) {
         when (event) {
             is ChatScreenEvent.SendMessage -> {
@@ -130,6 +158,10 @@ class ChatViewModel @Inject constructor(
 
             is ChatScreenEvent.UpdateCurrentChatRoom -> {
                 updateCurrentChatRoom(event.chatId)
+            }
+
+            is ChatScreenEvent.SummarizeConversation -> {
+                summarizeConversation(state.messages)
             }
 
             else -> Unit

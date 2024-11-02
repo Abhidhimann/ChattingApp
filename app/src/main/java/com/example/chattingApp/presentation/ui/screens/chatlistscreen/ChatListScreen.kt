@@ -138,7 +138,7 @@ fun ChatListScreen(state: ChatListScreenState, onEvent: (ChatListScreenEvent) ->
                         .padding(horizontal = 12.dp)
                         .clickable(onClick = { })
                 )
-            }, actions = { ChatScreenMenuActions() })
+            }, actions = { ChatListScreenMenuActions() })
         },
     ) { innerPadding ->
         UserListContent(
@@ -177,7 +177,7 @@ fun UserListContent(
 
 
 @Composable
-fun ChatScreenMenuActions() {
+fun ChatListScreenMenuActions() {
     var menuExpanded by remember { mutableStateOf(false) }
     Row {
         IconButton(onClick = { menuExpanded = true }) {

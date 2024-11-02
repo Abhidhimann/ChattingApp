@@ -22,6 +22,15 @@ data class Message(
             timeStamp = timeStamp
         )
     }
+
+    fun toAIChatMessage(role: String, currentUserId: String): AIChatMessage {
+        val prefix = if (currentUserId != senderId) {
+            "Other person to me: "
+        } else {
+            "Me to Other person: "
+        }
+        return AIChatMessage(role = role, content = prefix + textContent)
+    }
 }
 
 val tempMessageList = mutableStateListOf<Message>(

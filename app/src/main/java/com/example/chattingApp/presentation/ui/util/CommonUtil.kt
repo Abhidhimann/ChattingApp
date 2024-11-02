@@ -183,6 +183,44 @@ fun getTempFile(context: Context, suffix: String, fileName: String): File {
     return tempFile
 }
 
+@Composable
+fun SimpleAlertDialog(
+    dialogText: String,
+    confirmText: String = "",
+    dismissText: String = "",
+    onConfirm: () -> Unit = {},
+    onDismiss: () -> Unit = {},
+    onDismissRequest: () -> Unit = {}
+) {
+    AlertDialog(
+        text = {
+            Text(text = dialogText, style = MaterialTheme.typography.titleMedium)
+        },
+        onDismissRequest = onDismissRequest,
+        confirmButton = {
+            if (confirmText.isNotBlank()) {
+                TextButton(
+                    onClick = {
+                        onConfirm()
+                    }
+                ) {
+                    Text(confirmText)
+                }
+            }
+        },
+        dismissButton = {
+            if (dismissText.isNotBlank()) {
+                TextButton(
+                    onClick = {
+                        onDismiss()
+                    }
+                ) {
+                    Text(dismissText)
+                }
+            }
+        }
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

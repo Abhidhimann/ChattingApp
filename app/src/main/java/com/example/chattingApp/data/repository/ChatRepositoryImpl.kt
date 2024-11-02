@@ -79,6 +79,24 @@ class ChatRepositoryImpl @Inject constructor(
             return@withContext getChatBotResponse(chatRequest)
         }
 
+    override suspend fun summarizeConversation(messages: List<Message>): ResultResponse<AIChatMessage> {
+        return withContext(Dispatchers.IO) {
+            val selfUser = getUser()
+            if (selfUser == null) {
+                Log.i(tempTag(), "Error in getting user from prefs")
+                return@withContext ResultResponse.Failed(Exception("Error in getting userId from prefs"))
+            }
+            val summarizeQuery = AIQuery(
+                role = "user",
+                content = "Please summarize the messages above in just 3 sentences, focusing on 'key interactions' between me and other user."
+            )
+            return@withContext summarizeAiChatMessages(
+                messages.map { it.toAIChatMessage(role = "user", currentUserId = selfUser.userId) },
+                summarizeQuery = summarizeQuery
+            )
+        }
+    }
+
 
     override suspend fun getConversationDetails(conversationId: String): ResultResponse<Conversation> =
         withContext(Dispatchers.IO) {

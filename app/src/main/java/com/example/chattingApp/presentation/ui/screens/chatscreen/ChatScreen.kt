@@ -23,7 +23,10 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
@@ -59,6 +62,8 @@ import com.example.chattingApp.domain.model.MessageType
 import com.example.chattingApp.domain.model.tempMessageList
 import com.example.chattingApp.presentation.ui.screens.Screen
 import com.example.chattingApp.presentation.ui.util.CenterAlignedCommonAppBar
+import com.example.chattingApp.presentation.ui.util.SimpleAlertDialog
+import com.example.chattingApp.presentation.ui.util.SimpleLoadingScreen
 import com.example.chattingApp.presentation.ui.util.ToastUtil
 import com.example.chattingApp.presentation.viewmodels.ChatViewModel
 import kotlinx.coroutines.launch
@@ -69,6 +74,7 @@ fun ChatScreenRoot(chatId: String, navController: NavController) {
     val viewModel: ChatViewModel = hiltViewModel<ChatViewModel>()
 
     // if action is in ui then handle by lambda function in ui ( live navigation)
+
     ChatScreen(chatId = chatId, state = viewModel.state) { event ->
         when (event) {
             is ChatScreenEvent.OnBackButtonPressed -> {
@@ -98,6 +104,8 @@ fun ChatScreenRoot(chatId: String, navController: NavController) {
 fun ChatScreen(chatId: String, state: ChatScreenState, onEvent: (ChatScreenEvent) -> Unit) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    var openDialog by remember { mutableStateOf(false) }
+    var title by remember { mutableStateOf("") }
     DisposableEffect(key1 = lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
@@ -128,9 +136,23 @@ fun ChatScreen(chatId: String, state: ChatScreenState, onEvent: (ChatScreenEvent
             onEvent(ChatScreenEvent.OnBackButtonPressed)
         }
     }
-    var title by remember { mutableStateOf("") }
     LaunchedEffect(state.conversationDetails) {
         title = state.conversationDetails?.title ?: "Messages"
+    }
+
+    LaunchedEffect(state.isSummarySuccess) {
+        if (state.isSummarySuccess == true) {
+            openDialog = true
+        } else if (state.isSummarySuccess == false) {
+            ToastUtil.shortToast(context.applicationContext, "Some error occurred.")
+        }
+    }
+
+    if (openDialog) {
+        SimpleAlertDialog(
+            dialogText = state.conversationSummary,
+            onDismissRequest = { openDialog = false }
+        )
     }
 
     Scaffold(
@@ -145,17 +167,19 @@ fun ChatScreen(chatId: String, state: ChatScreenState, onEvent: (ChatScreenEvent
                         .padding(horizontal = 12.dp)
                         .clickable(onClick = { onEvent(ChatScreenEvent.OnBackButtonPressed) })
                 )
-            }, actions = { })
+            }, actions = { ChatScreenMenuActions(onEvent) })
         },
     ) { innerPadding ->
-        ChatContent(
-            modifier = Modifier
-                .padding(innerPadding)
-                .imePadding()
-                .fillMaxSize(), "",
-            state,
-            onEvent
-        )
+        SimpleLoadingScreen(modifier = Modifier.fillMaxSize(), isLoading = state.isSummaryInProgress) {
+            ChatContent(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .imePadding()
+                    .fillMaxSize(), "",
+                state,
+                onEvent
+            )
+        }
     }
 }
 
@@ -184,13 +208,15 @@ fun ChatContent(
                 ChatMessageItem(message = message)
             }
         }
-        MessageInputBox(modifier = Modifier
-            .fillMaxWidth()
-            .constrainAs(messageInputBox) {
-                bottom.linkTo(parent.bottom)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            }, hintText = "Message") { text ->
+        MessageInputBox(
+            modifier = Modifier
+                .fillMaxWidth()
+                .constrainAs(messageInputBox) {
+                    bottom.linkTo(parent.bottom)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }, hintText = "Message"
+        ) { text ->
             onEvent(ChatScreenEvent.SendMessage(text))
         }
     }
@@ -298,6 +324,28 @@ fun MessageInputBox(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(10.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun ChatScreenMenuActions(onEvent: (ChatScreenEvent) -> Unit) {
+    var menuExpanded by remember { mutableStateOf(false) }
+    Row {
+        IconButton(onClick = { menuExpanded = true }) {
+            Icon(Icons.Default.MoreVert, contentDescription = "More options")
+        }
+        DropdownMenu(
+            expanded = menuExpanded,
+            onDismissRequest = { menuExpanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Summarize Conversation") },
+                onClick = {
+                    onEvent(ChatScreenEvent.SummarizeConversation)
+                    menuExpanded = false
+                }
             )
         }
     }

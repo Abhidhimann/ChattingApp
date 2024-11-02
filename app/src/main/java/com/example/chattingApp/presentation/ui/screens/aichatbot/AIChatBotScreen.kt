@@ -16,12 +16,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,6 +42,7 @@ import com.example.chattingApp.domain.model.tempAIChatMessageList
 import com.example.chattingApp.presentation.ui.screens.Screen
 import com.example.chattingApp.presentation.ui.screens.chatscreen.MessageInputBox
 import com.example.chattingApp.presentation.ui.util.CenterAlignedCommonAppBar
+import com.example.chattingApp.presentation.ui.util.SimpleAlertDialog
 import com.example.chattingApp.presentation.ui.util.ToastUtil
 import com.example.chattingApp.presentation.viewmodels.AIViewModel
 import kotlinx.coroutines.delay
@@ -218,45 +217,6 @@ fun AIChatMessageItem(aiChatMessages: AIChatMessage) {
             )
         }
     }
-}
-
-@Composable
-fun SimpleAlertDialog(
-    dialogText: String,
-    confirmText: String = "",
-    dismissText: String = "",
-    onConfirm: () -> Unit = {},
-    onDismiss: () -> Unit = {},
-    onDismissRequest: () -> Unit = {}
-) {
-    AlertDialog(
-        text = {
-            Text(text = dialogText, style = MaterialTheme.typography.titleMedium)
-        },
-        onDismissRequest = onDismissRequest,
-        confirmButton = {
-            if (confirmText.isNotBlank()) {
-                TextButton(
-                    onClick = {
-                        onConfirm()
-                    }
-                ) {
-                    Text(confirmText)
-                }
-            }
-        },
-        dismissButton = {
-            if (dismissText.isNotBlank()) {
-                TextButton(
-                    onClick = {
-                        onDismiss()
-                    }
-                ) {
-                    Text(dismissText)
-                }
-            }
-        }
-    )
 }
 
 @Preview(showBackground = true)
