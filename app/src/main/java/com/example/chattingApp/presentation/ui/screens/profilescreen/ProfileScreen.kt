@@ -1,6 +1,7 @@
 package com.example.chattingApp.presentation.ui.screens.profilescreen
 
 import android.os.Build
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -268,7 +269,8 @@ fun ProfilePicture(
     modifier: Modifier,
     elevation: CardElevation,
     shapes: Shape,
-    border: BorderStroke
+    border: BorderStroke,
+    @DrawableRes defaultPicId: Int = R.drawable.user_default_pic
 ) {
     Card(
         shape = shapes,
@@ -278,7 +280,7 @@ fun ProfilePicture(
     ) {
         // will use glide
         Image(
-            painter = if (picUrl.isNullOrEmpty()) painterResource(id = R.drawable.user_default_pic) else rememberAsyncImagePainter(
+            painter = if (picUrl.isNullOrEmpty()) painterResource(id = defaultPicId) else rememberAsyncImagePainter(
                 model = picUrl
             ),
             contentDescription = "ProfilePicture",

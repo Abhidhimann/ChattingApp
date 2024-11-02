@@ -1,6 +1,5 @@
 package com.example.chattingApp.presentation.ui.screens.chatscreen
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -57,13 +56,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import com.example.chattingApp.domain.model.Message
 import com.example.chattingApp.domain.model.MessageType
-import com.example.chattingApp.domain.model.tempAIChatMessageList
 import com.example.chattingApp.domain.model.tempMessageList
 import com.example.chattingApp.presentation.ui.screens.Screen
 import com.example.chattingApp.presentation.ui.util.CenterAlignedCommonAppBar
 import com.example.chattingApp.presentation.ui.util.ToastUtil
 import com.example.chattingApp.presentation.viewmodels.ChatViewModel
-import com.example.chattingApp.utils.tempTag
 import kotlinx.coroutines.launch
 
 
@@ -127,7 +124,7 @@ fun ChatScreen(chatId: String, state: ChatScreenState, onEvent: (ChatScreenEvent
 
     LaunchedEffect(state.isChatDetailsFetchSuccess) {
         if (!state.isChatDetailsFetchSuccess) {
-            ToastUtil.shortToast(context.applicationContext, "Some error occurred")
+            ToastUtil.shortToast(context.applicationContext, "Some error occurred.")
             onEvent(ChatScreenEvent.OnBackButtonPressed)
         }
     }
@@ -183,7 +180,7 @@ fun ChatContent(
                 height = Dimension.fillToConstraints
             }) {
             items(messages) { message ->
-                Log.i(tempTag(), "in class get message $message")
+//                Log.i(tempTag(), "in class get message $message")
                 ChatMessageItem(message = message)
             }
         }
@@ -193,7 +190,7 @@ fun ChatContent(
                 bottom.linkTo(parent.bottom)
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
-            }) { text ->
+            }, hintText = "Message") { text ->
             onEvent(ChatScreenEvent.SendMessage(text))
         }
     }
@@ -234,6 +231,7 @@ fun ChatMessageItem(message: Message) {
 @Composable
 fun MessageInputBox(
     modifier: Modifier,
+    hintText: String,
     onSendClickListener: (String) -> Unit,
 ) {
     var inputTextValue by remember { mutableStateOf(TextFieldValue("")) }
@@ -269,7 +267,7 @@ fun MessageInputBox(
                 decorationBox = { innerTextField ->
                     if (inputTextValue.text.isEmpty()) {
                         Text(
-                            text = "Message",
+                            text = hintText,
                             style = LocalTextStyle.current.copy(
                                 color = MaterialTheme.colorScheme.onSurface.copy(
                                     alpha = 0.5f

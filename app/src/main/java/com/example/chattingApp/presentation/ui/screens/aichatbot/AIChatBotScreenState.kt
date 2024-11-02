@@ -4,5 +4,7 @@ import com.example.chattingApp.domain.model.AIChatMessage
 
 data class AIChatBotScreenState (
     val aiChatMessages: List<AIChatMessage> = emptyList(),
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val isSomeError: Boolean = false,
+    val isLimitExceed: Boolean = false
 )

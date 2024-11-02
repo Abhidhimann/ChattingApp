@@ -51,9 +51,10 @@ fun rememberImagePickerLauncher(onImagePicked: (Uri?) -> Unit): ManagedActivityR
 }
 
 @Composable
-fun requestPermission(callback: (Boolean) -> Unit) = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
-    callback(it)
-}
+fun requestPermission(callback: (Boolean) -> Unit) =
+    rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        callback(it)
+    }
 
 
 @Composable
@@ -182,37 +183,6 @@ fun getTempFile(context: Context, suffix: String, fileName: String): File {
     return tempFile
 }
 
-@Composable
-fun ChatTypeAlertDialog(
-    onChatAnonymously: () -> Unit,
-    onMakeProfile: () -> Unit,
-    dialogText: String,
-) {
-    AlertDialog(
-        text = {
-            Text(text = dialogText, style = MaterialTheme.typography.titleMedium)
-        },
-        onDismissRequest = { },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onMakeProfile()
-                }
-            ) {
-                Text("Make Profile")
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = {
-                    onChatAnonymously()
-                }
-            ) {
-                Text("Chat Anonymously")
-            }
-        }
-    )
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

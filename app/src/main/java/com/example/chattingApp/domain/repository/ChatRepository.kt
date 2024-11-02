@@ -10,5 +10,5 @@ interface ChatRepository {
     suspend fun getConversationDetails(conversationId: String): ResultResponse<Conversation>
     suspend fun observeMessages(conversationId: String): Flow<Message>
     suspend fun sendMessage(message: Message): ResultResponse<String>
-    suspend fun getChatBotResponse(aiChatMessage: AIChatMessage): ResultResponse<AIChatMessage>
+    suspend fun getChatBotResponse(aiChatMessages: List<AIChatMessage>): ResultResponse<AIChatMessage>
 }

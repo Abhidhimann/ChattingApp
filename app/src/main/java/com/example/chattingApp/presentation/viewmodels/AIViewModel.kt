@@ -11,6 +11,7 @@ import com.example.chattingApp.domain.model.AIChatMessageType
 import com.example.chattingApp.domain.repository.ChatRepository
 import com.example.chattingApp.presentation.ui.screens.aichatbot.AIChatBotScreenEvent
 import com.example.chattingApp.presentation.ui.screens.aichatbot.AIChatBotScreenState
+import com.example.chattingApp.utils.AIChatBotException
 import com.example.chattingApp.utils.ResultResponse
 import com.example.chattingApp.utils.tempTag
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,20 +26,36 @@ class AIViewModel @Inject constructor(
     var state by mutableStateOf(AIChatBotScreenState())
         private set
 
-    private fun getChatBotResponse(aiChatMessage: AIChatMessage) = viewModelScope.launch {
-        when (val result = chatRepository.getChatBotResponse(aiChatMessage)) {
+    private fun getChatBotResponse(aiChatMessages: List<AIChatMessage>) = viewModelScope.launch {
+        state = state.copy(isLoading = true)
+        when (val result = chatRepository.getChatBotResponse(aiChatMessages.reversed())) {
             is ResultResponse.Success -> {
-                Log.i(tempTag(), "Got response from chat bot ${result.data}")
                 val aiMessage = result.data
-                val aiChatMessages = state.aiChatMessages.toMutableList()
-                aiChatMessages.add(0, aiMessage)
+                val updatedAIChatMessages = state.aiChatMessages.toMutableList()
+                updatedAIChatMessages.add(0, aiMessage)
                 state = state.copy(
-                    aiChatMessages = aiChatMessages
+                    aiChatMessages = updatedAIChatMessages,
+                    isLoading = false
                 )
             }
 
             is ResultResponse.Failed -> {
                 Log.i(tempTag(), "Chat bot failed with ${result.exception}")
+                when (val ex = result.exception) {
+                    is AIChatBotException.LimitExceedException -> {
+                        state = state.copy(
+                            isLimitExceed = true,
+                            isLoading = false
+                        )
+                    }
+
+                    is AIChatBotException.GeneralException -> {
+                        state = state.copy(
+                            isSomeError = true,
+                            isLoading = false
+                        )
+                    }
+                }
             }
         }
     }
@@ -61,7 +78,7 @@ class AIViewModel @Inject constructor(
                 state = state.copy(
                     aiChatMessages = aiChatMessages
                 )
-                getChatBotResponse(aiMessage)
+                getChatBotResponse(aiChatMessages)
             }
 
             else -> Unit

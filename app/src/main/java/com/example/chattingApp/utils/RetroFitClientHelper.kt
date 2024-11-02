@@ -29,7 +29,7 @@ class RetroFitClientHelper() {
                 .writeTimeout(Api.TIME_OUT.getValue().toLong(), TimeUnit.SECONDS)
                 .apply {
                     if (BuildConfig.DEBUG){
-                        addInterceptor(logging)
+//                        addInterceptor(logging)
                     }
                     addInterceptor { chain ->
                         val newRequest: Request = if (headers != null) {

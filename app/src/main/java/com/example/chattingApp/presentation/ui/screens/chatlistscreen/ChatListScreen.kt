@@ -43,6 +43,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
+import com.example.chattingApp.R
 import com.example.chattingApp.domain.model.Conversation
 import com.example.chattingApp.domain.model.tempConversations
 import com.example.chattingApp.presentation.ui.screens.Screen
@@ -224,7 +225,8 @@ fun AiChatBotCard(onEvent: (ChatListScreenEvent) -> Unit) {
                 border = BorderStroke(
                     width = 2.dp,
                     color = MaterialTheme.colorScheme.primary
-                )
+                ),
+                defaultPicId = R.drawable.ai_chat_bot_icon
             )
             ConversationDetails(
                 userName = "AI Chat Bot",
