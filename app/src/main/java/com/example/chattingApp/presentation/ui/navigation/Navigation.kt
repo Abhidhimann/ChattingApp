@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.chattingApp.presentation.ui.screens.Screen
+import com.example.chattingApp.presentation.ui.screens.aichatbot.AIChatBotScreenRoot
 import com.example.chattingApp.presentation.ui.screens.splashscreen.StartUpLoading
 import com.example.chattingApp.presentation.ui.screens.chatlistscreen.ChatListScreenRoot
 import com.example.chattingApp.presentation.ui.screens.chatscreen.ChatScreenRoot
@@ -40,6 +41,7 @@ fun NavigationHost(navController: NavHostController, startDestination: String) {
                 ChatScreenRoot(it, navController)
             }
         }
+        composable(route = Screen.AIChat.route) { AIChatBotScreenRoot(navController) }
         composable(route = Screen.EditProfile.route) { EditProfileScreenRoot(navController) }
         composable(route = Screen.SignIn.route) { SignInScreenRoot(navController) }
         composable(route = Screen.SignUp.route) { SignUpScreenRoot(navController) }

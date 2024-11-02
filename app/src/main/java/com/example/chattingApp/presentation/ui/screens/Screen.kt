@@ -27,6 +27,7 @@ sealed class Screen(
     })) {
         fun createRoute(chatId: String) = "chatScreen/${chatId}"
     }
+    data object AIChat: Screen("aiChat")
 
     data object StartUp: Screen("startUpLoadingScreen")
 }

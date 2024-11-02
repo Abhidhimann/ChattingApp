@@ -7,6 +7,7 @@ localProperties.load(localPropertiesFile.inputStream())
 
 // Access properties from local.properties
 val webClientId: String = localProperties.getProperty("WEB_CLIENT_ID")
+val aiToken: String = localProperties.getProperty("AI_TOKEN")
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -28,6 +29,7 @@ android {
         versionName = "1.0"
 
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${webClientId}\"")
+        buildConfigField("String", "AI_TOKEN", "\"${aiToken}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
@@ -56,7 +58,7 @@ android {
         buildConfig = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.7"
     }
     packaging {
         resources {
@@ -109,6 +111,9 @@ dependencies {
     // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
 
+    // Logging Interceptor for debugging
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
+
     // Gson
     implementation("com.squareup.retrofit2:converter-scalars:2.1.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
@@ -128,6 +133,8 @@ dependencies {
     // compress
     implementation("id.zelory:compressor:3.0.1")
 
+    // openai
+    implementation(libs.openai.client)
 
 
     androidTestImplementation(libs.androidx.junit)

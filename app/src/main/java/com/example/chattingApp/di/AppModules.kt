@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.credentials.CredentialManager
+import com.example.chattingApp.data.remote.services.aichat.AiChatService
 import com.example.chattingApp.presentation.ui.util.NotificationHelper
 import com.example.chattingApp.data.remote.services.auth.AuthService
 import com.example.chattingApp.data.remote.services.auth.AuthServiceImpl
@@ -18,6 +19,7 @@ import com.example.chattingApp.data.remote.services.singlechat.SingleChatService
 import com.example.chattingApp.data.remote.services.user.UserService
 import com.example.chattingApp.data.remote.services.user.UserServiceImp
 import com.example.chattingApp.utils.Api
+import com.example.chattingApp.utils.AI_TOKEN
 import com.example.chattingApp.utils.RetroFitClientHelper
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -30,6 +32,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import okhttp3.Headers
 import javax.inject.Singleton
 
 
@@ -105,6 +108,21 @@ class AppModules {
     fun providesSingleChatService(firebaseDatabase: FirebaseFirestore): SingleChatService {
         return SingleChatServiceImp(firebaseDatabase)
     }
+
+
+    @Provides
+    @Singleton
+    fun providesAiChatService(): AiChatService {
+        return RetroFitClientHelper().getApiClient(
+            Api.CHAT_BOT_BASE_URL.getValue(),
+            Headers.Builder().add(
+                "Authorization",
+                "Bearer $AI_TOKEN"
+            ).build()
+        )
+            .create(AiChatService::class.java)
+    }
+
 
     @Provides
     @Singleton

@@ -1,6 +1,5 @@
 package com.example.chattingApp.presentation.ui.screens.chatlistscreen
 
-import android.Manifest
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -77,13 +76,21 @@ fun ChatListScreenRoot(navController: NavController) {
                     }
             }
 
+            is ChatListScreenEvent.OpenChatBot -> {
+                navController.navigate(Screen.AIChat.route) {
+                    popUpTo(Screen.ChatList.route) {
+                        inclusive = false
+                    }
+                }
+            }
+
             is ChatListScreenEvent.OtherUserProfileClicked -> {
                 navController.navigate(
                     Screen.Profile.createRoute(
                         event.userId
                     )
-                ){
-                    popUpTo(Screen.SignIn.route){
+                ) {
+                    popUpTo(Screen.SignIn.route) {
                         inclusive = true
                     }
                 }
@@ -157,6 +164,9 @@ fun UserListContent(
                 .fillMaxWidth()
                 .wrapContentHeight(align = Alignment.Top),
         ) {
+            item {
+                AiChatBotCard(onEvent)
+            }
             items(state.conversations) {
                 ConversationCard(conversation = it, onEvent)
             }
@@ -182,6 +192,47 @@ fun ChatScreenMenuActions() {
                     // will do something here
                     menuExpanded = false
                 }
+            )
+        }
+    }
+}
+
+@Composable
+fun AiChatBotCard(onEvent: (ChatListScreenEvent) -> Unit) {
+    Surface(
+        shape = RectangleShape,
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight(),
+        shadowElevation = 2.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(start = 2.dp)
+                .fillMaxSize()
+                .background(color = MaterialTheme.colorScheme.surface),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            ProfilePicture(
+                "", modifier = Modifier
+                    .padding(4.dp)
+                    .size(56.dp)
+                    .padding(4.dp),
+                elevation = CardDefaults.elevatedCardElevation(0.dp),
+                shapes = CircleShape,
+                border = BorderStroke(
+                    width = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            )
+            ConversationDetails(
+                userName = "AI Chat Bot",
+                lastText = "How may I help you today.",
+                updateAt = null,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable { onEvent(ChatListScreenEvent.OpenChatBot) }
             )
         }
     }

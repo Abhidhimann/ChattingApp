@@ -98,7 +98,10 @@ class ChatViewModel @Inject constructor(
             when (val conversationResult = chatRepository.getConversationDetails(conversationId)) {
                 is ResultResponse.Success -> {
                     conversation = conversationResult.data
-                    state = state.copy(conversationDetails = conversation, isChatDetailsFetchSuccess = true)
+                    state = state.copy(
+                        conversationDetails = conversation,
+                        isChatDetailsFetchSuccess = true
+                    )
                     updateCurrentChatRoom(conversationId)
                 }
 
