@@ -6,12 +6,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -139,12 +139,13 @@ fun AIChatContent(
 fun AIChatMessageItem(aiChatMessages: AIChatMessage) {
     Column(
         modifier = Modifier
-            .fillMaxHeight()
-            .fillMaxWidth(0.7f)
+            .fillMaxSize()
             .padding(start = 14.dp, end = 14.dp, top = 2.dp, bottom = 2.dp)
     ) {
         Box(
             modifier = Modifier
+                .fillMaxWidth(0.7f)
+                .wrapContentWidth(if (aiChatMessages.type == AIChatMessageType.OUTGOING) Alignment.End else Alignment.Start) // Wrap content based on the text size
                 .align(if (aiChatMessages.type == AIChatMessageType.OUTGOING) Alignment.End else Alignment.Start)
                 .clip(
                     RoundedCornerShape(

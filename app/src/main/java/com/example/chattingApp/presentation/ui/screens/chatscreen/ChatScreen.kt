@@ -7,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -15,6 +14,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -76,7 +76,7 @@ fun ChatScreenRoot(chatId: String, navController: NavController) {
         when (event) {
             is ChatScreenEvent.OnBackButtonPressed -> {
                 navController.popBackStack()
-                navController.navigate(Screen.ChatList.route){
+                navController.navigate(Screen.ChatList.route) {
                     popUpTo(Screen.ChatList.route) {
                         inclusive = true
                     }
@@ -89,7 +89,7 @@ fun ChatScreenRoot(chatId: String, navController: NavController) {
 
     BackHandler {
         navController.popBackStack()
-        navController.navigate(Screen.ChatList.route){
+        navController.navigate(Screen.ChatList.route) {
             popUpTo(Screen.ChatList.route) {
                 inclusive = true
             }
@@ -133,7 +133,7 @@ fun ChatScreen(chatId: String, state: ChatScreenState, onEvent: (ChatScreenEvent
     }
     var title by remember { mutableStateOf("") }
     LaunchedEffect(state.conversationDetails) {
-        title = state.conversationDetails?.title?: "Messages"
+        title = state.conversationDetails?.title ?: "Messages"
     }
 
     Scaffold(
@@ -204,12 +204,13 @@ fun ChatContent(
 fun ChatMessageItem(message: Message) {
     Column(
         modifier = Modifier
-            .fillMaxHeight()
-            .fillMaxWidth(0.7f)
+            .fillMaxSize()
             .padding(start = 14.dp, end = 14.dp, top = 2.dp, bottom = 2.dp)
     ) {
         Box(
             modifier = Modifier
+                .fillMaxWidth(0.7f)
+                .wrapContentWidth(if (message.type == MessageType.OUTGOING) Alignment.End else Alignment.Start) // Wrap content based on the text size
                 .align(if (message.type == MessageType.OUTGOING) Alignment.End else Alignment.Start)
                 .clip(
                     RoundedCornerShape(
@@ -222,7 +223,10 @@ fun ChatMessageItem(message: Message) {
                 .background(MaterialTheme.colorScheme.secondaryContainer)
                 .padding(10.dp)
         ) {
-            Text(text = message.textContent, color = MaterialTheme.colorScheme.onSecondaryContainer)
+            Text(
+                text = message.textContent,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
         }
     }
 }
