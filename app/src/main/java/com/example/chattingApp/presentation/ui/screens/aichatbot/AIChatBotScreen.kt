@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -138,7 +139,8 @@ fun AIChatContent(
 fun AIChatMessageItem(aiChatMessages: AIChatMessage) {
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxHeight()
+            .fillMaxWidth(0.7f)
             .padding(start = 14.dp, end = 14.dp, top = 2.dp, bottom = 2.dp)
     ) {
         Box(

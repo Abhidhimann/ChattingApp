@@ -133,9 +133,6 @@ dependencies {
     // compress
     implementation("id.zelory:compressor:3.0.1")
 
-    // openai
-    implementation(libs.openai.client)
-
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

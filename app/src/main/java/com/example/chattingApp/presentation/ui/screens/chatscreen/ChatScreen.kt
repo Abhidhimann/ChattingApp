@@ -205,7 +205,7 @@ fun ChatMessageItem(message: Message) {
     Column(
         modifier = Modifier
             .fillMaxHeight()
-            .fillMaxWidth(0.6f)
+            .fillMaxWidth(0.7f)
             .padding(start = 14.dp, end = 14.dp, top = 2.dp, bottom = 2.dp)
     ) {
         Box(
