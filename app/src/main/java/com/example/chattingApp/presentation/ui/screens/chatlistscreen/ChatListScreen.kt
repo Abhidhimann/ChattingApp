@@ -1,5 +1,7 @@
 package com.example.chattingApp.presentation.ui.screens.chatlistscreen
 
+import android.Manifest
+import android.os.Build
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -115,7 +117,9 @@ fun ChatListScreen(state: ChatListScreenState, onEvent: (ChatListScreenEvent) ->
                 Lifecycle.Event.ON_START -> {
                     onEvent(ChatListScreenEvent.ObserveConversations)
                     // comment this for preview
-//                    permission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        permission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
                 }
 
                 else -> {}

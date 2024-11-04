@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.chattingApp.domain.repository.AuthRepository
+import com.example.chattingApp.domain.repository.ChatRepository
 import com.example.chattingApp.domain.repository.UserServiceRepository
 import com.example.chattingApp.presentation.ui.screens.profilescreen.ProfileScreenEvent
 import com.example.chattingApp.presentation.ui.screens.profilescreen.ProfileScreenState
@@ -20,7 +21,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ProfileScreenViewModel @Inject constructor(
     private val userServiceRepo: UserServiceRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val chatRepository: ChatRepository
 ) : ViewModel() {
 
     var state by mutableStateOf(ProfileScreenState())
@@ -76,6 +78,7 @@ class ProfileScreenViewModel @Inject constructor(
     private fun logOut() = viewModelScope.launch {
         when (val result = userServiceRepo.updateUserToken(null)) {
             is ResultResponse.Success -> {
+                chatRepository.clearAIChatConversation()
                 when (val result2 = authRepository.logOut()) {
                     is ResultResponse.Success -> {
                         // todo clear all saved app prefs except user token

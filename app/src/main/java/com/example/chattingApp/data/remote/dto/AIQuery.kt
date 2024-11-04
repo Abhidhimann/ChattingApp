@@ -1,7 +1,6 @@
 package com.example.chattingApp.data.remote.dto
 
-import com.example.chattingApp.domain.model.AIChatMessage
-import com.example.chattingApp.domain.model.AIChatMessageType
+import com.example.chattingApp.data.local.entity.AIChatMessageEntity
 import com.google.gson.annotations.SerializedName
 
 data class AIQuery(
@@ -29,11 +28,12 @@ data class AIChatAnswer(
     val role: String,
     val content: String,
 ) {
-    fun toAIChatMessage(createdAt: Long, type: AIChatMessageType): AIChatMessage {
-        return AIChatMessage(
+
+    fun toAIChatMessageEntity(createdAt: Long, type: Int): AIChatMessageEntity {
+        return AIChatMessageEntity(
             role = role,
             content = content,
-            createdAt = createdAt,
+            timestamp = createdAt,
             type = type
         )
     }

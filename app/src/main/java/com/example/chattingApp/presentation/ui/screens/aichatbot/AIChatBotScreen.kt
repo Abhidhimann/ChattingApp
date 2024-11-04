@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
-
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,11 +30,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.example.chattingApp.domain.model.AIChatMessage
 import com.example.chattingApp.domain.model.AIChatMessageType
@@ -83,11 +86,31 @@ fun AIChatScreen(state: AIChatBotScreenState, onEvent: (AIChatBotScreenEvent) ->
     val context = LocalContext.current
     var openDialog by remember { mutableStateOf(false) }
 
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(key1 = lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> {
+                    onEvent(AIChatBotScreenEvent.ObserverAIChatMessages)
+                }
+
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     if (openDialog) {
         SimpleAlertDialog(
             dialogText = "Limit exceeded please start a new conversation.",
             confirmText = "New Chat",
-            onConfirm = { onEvent(AIChatBotScreenEvent.OnBackButtonPressed) },
+            onConfirm = {
+                onEvent(AIChatBotScreenEvent.DeleteAIChatConversation)
+                openDialog = false
+            },
         )
     }
 
@@ -162,7 +185,8 @@ fun AIChatContent(
                         AIChatMessage(
                             role = "",
                             content = loadingDotsContent,
-                            type = AIChatMessageType.INCOMING
+                            type = AIChatMessageType.INCOMING,
+                            id = 0
                         )
                     )
                 }

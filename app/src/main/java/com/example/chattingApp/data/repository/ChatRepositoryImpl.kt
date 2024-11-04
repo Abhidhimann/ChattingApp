@@ -2,6 +2,7 @@ package com.example.chattingApp.data.repository
 
 import android.content.SharedPreferences
 import android.util.Log
+import com.example.chattingApp.data.local.dao.AIChatMessageDao
 import com.example.chattingApp.data.remote.dto.AIChatRequestBody
 import com.example.chattingApp.data.remote.dto.AIQuery
 import com.example.chattingApp.data.remote.services.singlechat.SingleChatService
@@ -15,7 +16,6 @@ import com.example.chattingApp.domain.model.Message
 import com.example.chattingApp.domain.model.UserSummary
 import com.example.chattingApp.domain.repository.ChatRepository
 import com.example.chattingApp.utils.AIChatBotException
-import com.example.chattingApp.utils.AI_CHAT_QUERIES_LIMIT
 import com.example.chattingApp.utils.ResultResponse
 import com.example.chattingApp.utils.tempTag
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +30,7 @@ class ChatRepositoryImpl @Inject constructor(
     private val singleChatService: SingleChatService,
     private val chatSocketService: ChatSocketService,
     private val aiChatService: AiChatService,
+    private val aiChatMessageDao: AIChatMessageDao,
     private val appPrefs: SharedPreferences
 ) : ChatRepository {
 
@@ -67,16 +68,23 @@ class ChatRepositoryImpl @Inject constructor(
         chatSocketService.sendMessage(message.toMessageDto())
     }
 
-    override suspend fun getChatBotResponse(aiChatMessages: List<AIChatMessage>): ResultResponse<AIChatMessage> =
+    override suspend fun getChatBotResponse(aiChatMessages: List<AIChatMessage>): ResultResponse<Unit> =
         withContext(Dispatchers.IO) {
-            if (aiChatMessages.size > AI_CHAT_QUERIES_LIMIT) {
-                return@withContext ResultResponse.Failed(AIChatBotException.LimitExceedException())
-            }
+            aiChatMessageDao.insertAIChatMessage(aiChatMessages.last().toAiChatMessageEntity())
             val chatRequest = AIChatRequestBody(
                 model = "meta-llama/Meta-Llama-3.1-8B-Instruct-lora",
                 messages = aiChatMessages.map { it.toAiQuery() }
             )
-            return@withContext getChatBotResponse(chatRequest)
+            when (val result = getChatBotResponse(chatRequest)) {
+                is ResultResponse.Success -> {
+                    aiChatMessageDao.insertAIChatMessage(result.data.toAiChatMessageEntity())
+                    return@withContext ResultResponse.Success(Unit)
+                }
+
+                is ResultResponse.Failed -> {
+                    return@withContext ResultResponse.Failed(result.exception)
+                }
+            }
         }
 
     override suspend fun summarizeConversation(messages: List<Message>): ResultResponse<AIChatMessage> {
@@ -94,6 +102,32 @@ class ChatRepositoryImpl @Inject constructor(
                 messages.map { it.toAIChatMessage(role = "user", currentUserId = selfUser.userId) },
                 summarizeQuery = summarizeQuery
             )
+        }
+    }
+
+    override suspend fun observeAIChatMessages() = aiChatMessageDao.observeAIChatMessages()
+        .map { it.map { aiChatMessageEntity -> aiChatMessageEntity.toAIChatMessage() } }
+
+    override suspend fun deleteAIChatMessage(aiChatMessages: List<AIChatMessage>): ResultResponse<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                Log.i(tempTag(), "message $aiChatMessages")
+                aiChatMessageDao.deleteAIChatMessages(aiChatMessages.map { it.toAiChatMessageEntity() })
+                ResultResponse.Success(Unit)
+            } catch (e: Exception) {
+                ResultResponse.Failed(e)
+            }
+        }
+    }
+
+    override suspend fun clearAIChatConversation(): ResultResponse<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                aiChatMessageDao.clearAIChatConversation()
+                ResultResponse.Success(Unit)
+            } catch (e: Exception) {
+                ResultResponse.Failed(e)
+            }
         }
     }
 
@@ -142,15 +176,13 @@ class ChatRepositoryImpl @Inject constructor(
                 if (responseBody.choices.isEmpty()) {
                     return@withContext ResultResponse.Failed(AIChatBotException.GeneralException("response body is empty."))
                 }
-                val createdAt =
-                    if (responseBody.created < 1_000_000_000_000L) responseBody.created * 1000
-                    else responseBody.created
+                val createdAt = java.util.Date().time
 
-                return@withContext ResultResponse.Success(
-                    responseBody.choices.first().message.toAIChatMessage(
-                        createdAt, AIChatMessageType.INCOMING
+                val aiChatMessageEntity =
+                    responseBody.choices.first().message.toAIChatMessageEntity(
+                        createdAt, AIChatMessageType.INCOMING.value
                     )
-                )
+                return@withContext ResultResponse.Success(aiChatMessageEntity.toAIChatMessage())
             } catch (e: Exception) {
                 return@withContext ResultResponse.Failed(AIChatBotException.GeneralException(e.toString()))
             }

@@ -29,7 +29,7 @@ data class Message(
         } else {
             "Me to Other person: "
         }
-        return AIChatMessage(role = role, content = prefix + textContent)
+        return AIChatMessage(role = role, content = prefix + textContent, id = 0)
     }
 }
 

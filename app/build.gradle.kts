@@ -133,6 +133,11 @@ dependencies {
     // compress
     implementation("id.zelory:compressor:3.0.1")
 
+    // room
+    kapt("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
