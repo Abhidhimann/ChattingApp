@@ -75,7 +75,7 @@ class NotificationHelper @Inject constructor(private val context: Context) {
         }
 
         val notificationBuilder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.app_icon) // todo will change this to my app icon
+            .setSmallIcon(R.drawable.notification_icon) // todo will change this to my app icon
             .setContentTitle(messageNotification.chatRoomTitle)
             .setStyle(messageStyle)
             .setCategory(Notification.CATEGORY_MESSAGE)
