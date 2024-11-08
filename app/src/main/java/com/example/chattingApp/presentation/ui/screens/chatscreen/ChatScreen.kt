@@ -143,6 +143,7 @@ fun ChatScreen(chatId: String, state: ChatScreenState, onEvent: (ChatScreenEvent
     LaunchedEffect(state.isSummarySuccess) {
         if (state.isSummarySuccess == true) {
             openDialog = true
+            onEvent(ChatScreenEvent.SetDefaultValueForAISummary)
         } else if (state.isSummarySuccess == false) {
             ToastUtil.shortToast(context.applicationContext, "Some error occurred.")
         }

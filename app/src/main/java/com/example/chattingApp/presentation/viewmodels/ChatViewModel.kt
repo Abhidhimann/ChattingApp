@@ -121,7 +121,7 @@ class ChatViewModel @Inject constructor(
             )
             val messageSize = min(messages.size, MAX_MESSAGE_COUNT_FOR_SUMMARIZE);
             when (val result =
-                chatRepository.summarizeConversation(messages.reversed().subList(0, messageSize))) {
+                chatRepository.summarizeConversation(messages.subList(0, messageSize).reversed())) {
                 is ResultResponse.Success -> {
                     state = state.copy(
                         conversationSummary = result.data.content,
@@ -162,6 +162,13 @@ class ChatViewModel @Inject constructor(
 
             is ChatScreenEvent.SummarizeConversation -> {
                 summarizeConversation(state.messages)
+            }
+
+            is ChatScreenEvent.SetDefaultValueForAISummary -> {
+                state = state.copy(
+                    isSummarySuccess = null,
+                    isSummaryInProgress = false,
+                )
             }
 
             else -> Unit

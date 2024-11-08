@@ -71,8 +71,13 @@ class ChatRepositoryImpl @Inject constructor(
     override suspend fun getChatBotResponse(aiChatMessages: List<AIChatMessage>): ResultResponse<Unit> =
         withContext(Dispatchers.IO) {
             aiChatMessageDao.insertAIChatMessage(aiChatMessages.last().toAiChatMessageEntity())
+            // later change it to db
+            val model =
+                appPrefs.getString("ai_model", null) ?: return@withContext ResultResponse.Failed(
+                    AIChatBotException.GeneralException("ai_model value is null")
+                )
             val chatRequest = AIChatRequestBody(
-                model = "meta-llama/Meta-Llama-3.1-8B-Instruct-lora",
+                model = model,
                 messages = aiChatMessages.map { it.toAiQuery() }
             )
             when (val result = getChatBotResponse(chatRequest)) {
@@ -159,8 +164,13 @@ class ChatRepositoryImpl @Inject constructor(
         summarizeQuery: AIQuery
     ): ResultResponse<AIChatMessage> {
         return withContext(Dispatchers.IO) {
+            // later change it to db
+            val model =
+                appPrefs.getString("ai_model", null) ?: return@withContext ResultResponse.Failed(
+                    AIChatBotException.GeneralException("ai_model value is null")
+                )
             val chatRequest = AIChatRequestBody(
-                model = "meta-llama/Meta-Llama-3.1-8B-Instruct-lora",
+                model = model,
                 messages = aiChatMessages.map { it.toAiQuery() } + summarizeQuery
             )
             Log.i(tempTag(), "summarize $chatRequest")

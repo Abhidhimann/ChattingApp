@@ -7,4 +7,5 @@ sealed class ChatScreenEvent {
     data object OnBackButtonPressed: ChatScreenEvent()
     data object SummarizeConversation: ChatScreenEvent()
     data class UpdateCurrentChatRoom(val chatId: String?): ChatScreenEvent()
+    data object SetDefaultValueForAISummary: ChatScreenEvent()
 }

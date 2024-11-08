@@ -101,6 +101,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.1.1"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-firestore:24.0.0")
+    implementation("com.google.firebase:firebase-config:21.6.0")
 
     // task to coroutines because i like coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.4.1")

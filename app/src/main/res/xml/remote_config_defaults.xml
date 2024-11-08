@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<defaults>
+  <entry>
+    <key>AI_MODEL</key>
+    <value>Meta Llama 3.2 3B Instruct Turbo 2</value>
+  </entry>
+</defaults>
