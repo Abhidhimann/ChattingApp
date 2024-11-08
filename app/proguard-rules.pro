@@ -19,5 +19,28 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
--keep class com.google.android.gms.signin.** { *; }
--dontwarn com.google.android.gms.signin.**
+# Add this global rule
+-keepattributes Signature
+
+# This rule will properly ProGuard all the model classes in
+# the package com.example.models. Modify to fit the structure
+# of your app.
+-keepclassmembers class com.example.chattingApp.data.remote.dto.** {
+  *;
+}
+# Keep generic signature of Call, Response (R8 full mode strips signatures from non-kept items).
+ -keep,allowobfuscation,allowshrinking interface retrofit2.Call
+ -keep,allowobfuscation,allowshrinking class retrofit2.Response
+
+ # With R8 full mode generic signatures are stripped for classes that are not
+ # kept. Suspend functions are wrapped in continuations where the type argument
+ # is used.
+ -keep,allowobfuscation,allowshrinking class kotlin.coroutines.Continuation
+ # Remove all Log calls in release build
+ -assumenosideeffects class android.util.Log {
+     public static *** d(...);
+     public static *** v(...);
+     public static *** i(...);
+     public static *** w(...);
+     public static *** e(...);
+ }
