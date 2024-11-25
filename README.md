@@ -5,6 +5,8 @@ This Android application allows users to discover and connect with others, view 
 ## Features
 
 - **Sign in/up page**: Log in/register using email and password or ****Google Single Sign-On (SSO)****.
+- **AI Chatbot**: Access a built-in AI-powered chatbot for general queries or assistance while chatting.
+- **Conversation Summarization**: Generate concise summaries of past chats to quickly review key points.
 - **Profile Page**: View and update your profile, including uploading a profile picture.
 - **Discover Users Page**: Explore and find other users within the app and send connection requests.
 - **Requests Page**: Manage incoming connection requests by accepting or rejecting them.
@@ -24,7 +26,7 @@ Common tech stacks used are:
 - **Zelory Image Compressor** - For compressing image before uploading to firebase storage.
 - **Jetpack Compose** - Declarative and simplified way for UI development.
 - **Material 3**: Apply Material 3 design principles and components to ensure app has a modern and cohesive look.
-- **Firebase Libraries** - Firebase Messaging, Firebase Storage, Firebase Auth & Firestore.
+- **Firebase Libraries** - Firebase Messaging, Firebase Storage, Remote Config, Firebase Auth & Firestore.
 
 ## DEMO
 
@@ -37,6 +39,11 @@ https://github.com/user-attachments/assets/b8e83d7d-c93a-4ca5-8728-f63962e80be1
 https://github.com/user-attachments/assets/5177304c-5052-4aff-895e-19bf5dc79738
 
 https://github.com/user-attachments/assets/463ea2ed-6b2d-4b15-adb0-b4f3454a06bb
+
+https://github.com/user-attachments/assets/49df4135-9692-44b4-8fe8-6f0345fe55df
+
+https://github.com/user-attachments/assets/bfc32dde-2156-43c4-b9f9-09e0aa12cd20
+
 
 **Apk file**: [Chatting App](https://github.com/Abhidhimann/ChattingApp/blob/chattingAppFirebase/app/release/app-release.apk.zip)
 
